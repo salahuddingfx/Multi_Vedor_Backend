@@ -22,7 +22,7 @@ class SiteController extends BaseController
             'site' => $site,
             'hero_slides' => HeroSlide::where('site_id', $site->id)->orderBy('order')->get(),
             'categories' => Category::where('site_id', $site->id)->get(),
-            'featured_products' => Product::where('site_id', $site->id)->where('is_featured', true)->with('images')->get(),
+            'featured_products' => Product::where('site_id', $site->id)->where('is_featured', true)->with(['images', 'category'])->get(),
         ];
 
         return $this->sendResponse($data, 'Site initialization data retrieved successfully.');

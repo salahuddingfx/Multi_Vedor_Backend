@@ -14,7 +14,7 @@ class ProductController extends BaseController
         $site = Site::where('slug', $site_slug)->first();
         if (!$site) return $this->sendError('Site not found.');
 
-        $query = Product::where('site_id', $site->id)->with('images');
+        $query = Product::where('site_id', $site->id)->with(['images', 'category']);
 
         if ($request->has('category')) {
             $category = Category::where('site_id', $site->id)->where('slug', $request->category)->first();

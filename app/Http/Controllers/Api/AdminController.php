@@ -159,9 +159,18 @@ class AdminController extends BaseController
         $validated = $request->validate([
             'site_id' => 'required',
             'name' => 'required',
-            'is_featured' => 'boolean'
+            'is_featured' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
+        
         $validated['slug'] = Str::slug($request->name);
+        
+        if ($request->hasFile('image')) {
+            $imageName = time() . '_' . $request->image->getClientOriginalName();
+            $request->image->move(public_path('uploads/categories'), $imageName);
+            $validated['image_path'] = url('uploads/categories/' . $imageName);
+        }
+
         $category = Category::create($validated);
         return $this->sendResponse($category, 'Category created.');
     }
@@ -170,9 +179,18 @@ class AdminController extends BaseController
         $category = Category::findOrFail($id);
         $validated = $request->validate([
             'name' => 'required',
-            'is_featured' => 'boolean'
+            'is_featured' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
+        
         $validated['slug'] = Str::slug($request->name);
+
+        if ($request->hasFile('image')) {
+            $imageName = time() . '_' . $request->image->getClientOriginalName();
+            $request->image->move(public_path('uploads/categories'), $imageName);
+            $validated['image_path'] = url('uploads/categories/' . $imageName);
+        }
+
         $category->update($validated);
         return $this->sendResponse($category, 'Category updated.');
     }

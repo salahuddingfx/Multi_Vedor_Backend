@@ -51,7 +51,7 @@ Route::prefix('admin')->group(function () {
     // Categories
     Route::get('/categories', [AdminController::class, 'getCategories']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
-    Route::put('/categories/{id}', [AdminController::class, 'updateCategory']);
+    Route::post('/categories/{id}', [AdminController::class, 'updateCategory']); // For multipart updates
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
     
     // Orders
