@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\ReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,13 @@ Route::prefix('v1/{site}')->group(function () {
     
     // Contact
     Route::post('/contact', [ContactController::class, 'store']);
+
+    // Dynamic Pages
+    Route::get('/pages/{slug}', [SiteController::class, 'getPage']);
+
+    // Reviews
+    Route::get('/reviews', [ReviewController::class, 'index']);
+    Route::post('/reviews', [ReviewController::class, 'store']);
 });
 
 /*
@@ -78,6 +86,11 @@ Route::prefix('admin')->group(function () {
     // Contact Messages
     Route::get('/messages', [AdminController::class, 'getMessages']);
     Route::put('/messages/{id}/read', [AdminController::class, 'markMessageRead']);
+
+    // Reviews
+    Route::get('/reviews', [ReviewController::class, 'getAdminReviews']);
+    Route::put('/reviews/{id}', [ReviewController::class, 'updateAdminReview']);
+    Route::delete('/reviews/{id}', [ReviewController::class, 'deleteAdminReview']);
 
     // Admin User Management
     Route::get('/users', [AdminController::class, 'getUsers']);
