@@ -27,4 +27,19 @@ class SiteController extends BaseController
 
         return $this->sendResponse($data, 'Site initialization data retrieved successfully.');
     }
+
+    public function getPage(Request $request, $site_slug, $slug)
+    {
+        $site = Site::where('slug', $site_slug)->first();
+        if (!$site) {
+            return $this->sendError('Site not found.');
+        }
+
+        $page = \App\Models\Page::where('site_id', $site->id)->where('slug', $slug)->first();
+        if (!$page) {
+            return $this->sendError('Page not found.', [], 404);
+        }
+
+        return $this->sendResponse($page, 'Page retrieved successfully.');
+    }
 }
