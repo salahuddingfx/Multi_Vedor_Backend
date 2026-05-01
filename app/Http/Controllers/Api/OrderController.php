@@ -25,6 +25,9 @@ class OrderController extends BaseController
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'payment_method' => 'required|in:cod,bkash,nagad',
+            'transaction_id' => 'nullable|string',
+            'sender_number' => 'nullable|string',
         ]);
 
         return DB::transaction(function () use ($request, $site) {
@@ -75,6 +78,9 @@ class OrderController extends BaseController
                 'total_amount' => $totalAmount,
                 'status' => 'placed',
                 'payment_status' => 'unpaid',
+                'payment_method' => $request->payment_method,
+                'transaction_id' => $request->transaction_id,
+                'sender_number' => $request->sender_number,
             ]);
 
             foreach ($orderItems as $item) {
