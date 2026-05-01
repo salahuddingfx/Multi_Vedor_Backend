@@ -99,19 +99,24 @@ class AdminController extends BaseController
             'weight' => 'required|numeric',
             'stock' => 'required|integer',
             'description' => 'nullable',
-            'image' => 'nullable|image|max:2048'
+            'images.*' => 'nullable|image|max:2048'
         ]);
         
         $validated['slug'] = Str::slug($request->name);
         $product = Product::create($validated);
         
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $imagePath = asset('storage/' . $path);
-            $product->images()->create(['image_path' => $imagePath]);
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                $path = $image->store('products', 'public');
+                $imagePath = asset('storage/' . $path);
+                $product->images()->create([
+                    'image_path' => $imagePath,
+                    'is_primary' => $index === 0
+                ]);
+            }
         }
 
-        return $this->sendResponse($product->load('images'), 'Product created with image.');
+        return $this->sendResponse($product->load('images'), 'Product created with images.');
     }
 
     public function updateProduct(Request $request, $id) {
@@ -123,7 +128,7 @@ class AdminController extends BaseController
             'weight' => 'sometimes|required|numeric',
             'stock' => 'sometimes|required|integer',
             'description' => 'nullable',
-            'image' => 'nullable|image|max:2048'
+            'images.*' => 'nullable|image|max:2048'
         ]);
 
         if (isset($validated['name'])) {
@@ -132,12 +137,16 @@ class AdminController extends BaseController
 
         $product->update($validated);
 
-        if ($request->hasFile('image')) {
-            // Delete old image if needed, but for now just add new one
-            $path = $request->file('image')->store('products', 'public');
-            $imagePath = asset('storage/' . $path);
+        if ($request->hasFile('images')) {
             $product->images()->delete(); // Clear old ones for simplicity
-            $product->images()->create(['image_path' => $imagePath]);
+            foreach ($request->file('images') as $index => $image) {
+                $path = $image->store('products', 'public');
+                $imagePath = asset('storage/' . $path);
+                $product->images()->create([
+                    'image_path' => $imagePath,
+                    'is_primary' => $index === 0
+                ]);
+            }
         }
 
         return $this->sendResponse($product->load('images'), 'Product updated.');
@@ -242,9 +251,11 @@ class AdminController extends BaseController
     public function storeHeroSlide(Request $request) {
         $validated = $request->validate([
             'site_id' => 'required',
+            'product_id' => 'nullable|integer',
             'title' => 'required',
             'subtitle' => 'nullable',
             'badge' => 'nullable',
+            'button_text' => 'nullable',
             'image' => 'required|image|max:2048',
             'order' => 'integer'
         ]);
@@ -261,9 +272,11 @@ class AdminController extends BaseController
     public function updateHeroSlide(Request $request, $id) {
         $slide = HeroSlide::findOrFail($id);
         $validated = $request->validate([
+            'product_id' => 'nullable|integer',
             'title' => 'sometimes|required',
             'subtitle' => 'nullable',
             'badge' => 'nullable',
+            'button_text' => 'nullable',
             'image' => 'nullable|image|max:2048',
             'order' => 'integer'
         ]);
