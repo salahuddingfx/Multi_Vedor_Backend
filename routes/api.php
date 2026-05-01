@@ -62,6 +62,7 @@ Route::prefix('admin')->group(function () {
     // Hero Slides
     Route::get('/hero-slides', [AdminController::class, 'getHeroSlides']);
     Route::post('/hero-slides', [AdminController::class, 'storeHeroSlide']);
+    Route::post('/hero-slides/{id}', [AdminController::class, 'updateHeroSlide']); // Use POST for multipart/form-data update
     Route::delete('/hero-slides/{id}', [AdminController::class, 'deleteHeroSlide']);
     
     // Dynamic Pages

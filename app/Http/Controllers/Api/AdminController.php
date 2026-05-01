@@ -158,7 +158,8 @@ class AdminController extends BaseController
     public function storeCategory(Request $request) {
         $validated = $request->validate([
             'site_id' => 'required',
-            'name' => 'required'
+            'name' => 'required',
+            'is_featured' => 'boolean'
         ]);
         $validated['slug'] = Str::slug($request->name);
         $category = Category::create($validated);
@@ -168,7 +169,8 @@ class AdminController extends BaseController
     public function updateCategory(Request $request, $id) {
         $category = Category::findOrFail($id);
         $validated = $request->validate([
-            'name' => 'required'
+            'name' => 'required',
+            'is_featured' => 'boolean'
         ]);
         $validated['slug'] = Str::slug($request->name);
         $category->update($validated);
@@ -211,6 +213,57 @@ class AdminController extends BaseController
         $order = Order::with('items')->findOrFail($id);
         return view('invoice', compact('order'));
     }
+
+    // Hero Slides
+    public function getHeroSlides(Request $request) {
+        $siteId = $request->site_id;
+        $slides = HeroSlide::where('site_id', $siteId)->orderBy('order')->get();
+        return $this->sendResponse($slides, 'Hero slides retrieved.');
+    }
+
+    public function storeHeroSlide(Request $request) {
+        $validated = $request->validate([
+            'site_id' => 'required',
+            'title' => 'required',
+            'subtitle' => 'nullable',
+            'badge' => 'nullable',
+            'image' => 'required|image|max:2048',
+            'order' => 'integer'
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('slides', 'public');
+            $validated['image_path'] = asset('storage/' . $path);
+        }
+
+        $slide = HeroSlide::create($validated);
+        return $this->sendResponse($slide, 'Hero slide created.');
+    }
+
+    public function updateHeroSlide(Request $request, $id) {
+        $slide = HeroSlide::findOrFail($id);
+        $validated = $request->validate([
+            'title' => 'sometimes|required',
+            'subtitle' => 'nullable',
+            'badge' => 'nullable',
+            'image' => 'nullable|image|max:2048',
+            'order' => 'integer'
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('slides', 'public');
+            $validated['image_path'] = asset('storage/' . $path);
+        }
+
+        $slide->update($validated);
+        return $this->sendResponse($slide, 'Hero slide updated.');
+    }
+
+    public function deleteHeroSlide($id) {
+        HeroSlide::findOrFail($id)->delete();
+        return $this->sendResponse(null, 'Hero slide deleted.');
+    }
+
 
     public function storeUser(Request $request) {
         $validated = $request->validate([
@@ -267,37 +320,6 @@ class AdminController extends BaseController
         $site = Site::findOrFail($site_id);
         $site->update(['settings' => $request->settings]);
         return $this->sendResponse($site, 'Site settings updated.');
-    }
-
-    // Hero Slides
-    public function getHeroSlides(Request $request) {
-        $siteId = $request->site_id;
-        $slides = HeroSlide::where('site_id', $siteId)->orderBy('order')->get();
-        return $this->sendResponse($slides, 'Hero slides retrieved.');
-    }
-
-    public function storeHeroSlide(Request $request) {
-        $validated = $request->validate([
-            'site_id' => 'required',
-            'title' => 'required',
-            'subtitle' => 'nullable',
-            'badge' => 'nullable',
-            'image' => 'required|image|max:2048',
-            'order' => 'integer'
-        ]);
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('slides', 'public');
-            $validated['image_path'] = asset('storage/' . $path);
-        }
-
-        $slide = HeroSlide::create($validated);
-        return $this->sendResponse($slide, 'Hero slide created.');
-    }
-
-    public function deleteHeroSlide($id) {
-        HeroSlide::findOrFail($id)->delete();
-        return $this->sendResponse(null, 'Hero slide deleted.');
     }
 
     // Dynamic Pages
