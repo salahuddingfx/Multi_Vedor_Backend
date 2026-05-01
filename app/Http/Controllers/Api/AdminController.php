@@ -47,10 +47,11 @@ class AdminController extends BaseController
         $siteId = $request->site_id;
 
         $stats = [
-            'total_revenue' => Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->sum('total_amount'),
+            'total_sales' => (float) Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->sum('total_amount'),
             'total_orders' => Order::where('site_id', $siteId)->count(),
-            'total_products' => Product::where('site_id', $siteId)->count(),
-            'total_customers' => Order::where('site_id', $siteId)->distinct('customer_phone')->count('customer_phone'),
+            'active_products' => Product::where('site_id', $siteId)->count(),
+            'low_stock_products' => Product::where('site_id', $siteId)->where('stock', '<', 10)->count(),
+            'recent_orders' => Order::where('site_id', $siteId)->latest()->take(5)->get(),
         ];
 
         return $this->sendResponse($stats, 'Stats retrieved.');
