@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\CouponController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,9 @@ Route::prefix('v1/{site}')->group(function () {
     // Reviews
     Route::get('/reviews', [ReviewController::class, 'index']);
     Route::post('/reviews', [ReviewController::class, 'store']);
+
+    // Coupons
+    Route::post('/validate-coupon', [CouponController::class, 'validateCoupon']);
 });
 
 /*
@@ -97,5 +101,8 @@ Route::prefix('admin')->group(function () {
     Route::post('/users', [AdminController::class, 'storeUser']);
     Route::put('/users/{id}', [AdminController::class, 'updateUser']);
     Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+
+    // Coupons
+    Route::apiResource('coupons', CouponController::class);
     });
 });
