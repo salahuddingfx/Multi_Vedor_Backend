@@ -30,6 +30,12 @@ Route::prefix('v1/{site}')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->group(function () {
+    // Authentication
+    Route::post('/login', [AdminController::class, 'login']);
+    
+    // Stats
+    Route::get('/stats', [AdminController::class, 'getStats']);
+
     // Products
     Route::get('/products', [AdminController::class, 'getProducts']);
     Route::post('/products', [AdminController::class, 'storeProduct']);
