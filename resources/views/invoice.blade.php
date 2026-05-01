@@ -3,250 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #{{ $order->tracking_id }}</title>
+    <title>Receipt #{{ $order->tracking_id }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 0;
             background-color: #fff;
-            color: #333;
+            color: #000;
+            line-height: 1.2;
         }
 
-        .invoice-container {
-            width: 8.5in;
-            min-height: 11in;
-            padding: 0.5in;
-            margin: auto;
+        .receipt-container {
+            width: 1.5in;
+            padding: 0.1in;
+            margin: 0;
             box-sizing: border-box;
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 3px solid #000;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .logo h1 {
-            font-size: 32px;
-            font-weight: 900;
-            margin: 0;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .logo p {
-            font-size: 12px;
-            margin: 5px 0 0;
-            color: #666;
-        }
-
-        .invoice-meta {
-            text-align: right;
-        }
-
-        .invoice-meta h2 {
-            font-size: 20px;
-            font-weight: 900;
-            margin: 0;
-            color: #000;
-        }
-
-        .invoice-meta p {
-            font-size: 12px;
-            margin: 5px 0;
-            font-weight: bold;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .info-block h4 {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 5px;
             margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            font-size: 8px;
+            margin: 2px 0 0;
+        }
+
+        .info-block {
+            font-size: 8px;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
             padding-bottom: 5px;
         }
 
         .info-block p {
-            font-size: 13px;
-            margin: 3px 0;
-            line-height: 1.5;
+            margin: 1px 0;
         }
 
-        table {
+        .items-table {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
+            font-size: 8px;
         }
 
-        th {
-            text-align: left;
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #888;
-            border-bottom: 2px solid #000;
-            padding: 10px 0;
+        .item-row {
+            margin-bottom: 5px;
         }
 
-        td {
-            padding: 15px 0;
-            font-size: 13px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .item-name {
+        .item-header {
             font-weight: bold;
+            font-size: 8px;
         }
 
-        .item-weight {
-            font-size: 11px;
-            color: #888;
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 7px;
         }
 
         .totals {
-            width: 300px;
-            margin-left: auto;
+            border-top: 1px dashed #000;
+            padding-top: 5px;
+            font-size: 8px;
         }
 
         .total-row {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
-            font-size: 13px;
+            margin-bottom: 2px;
         }
 
         .total-row.grand-total {
-            margin-top: 10px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            font-size: 18px;
-            font-weight: 900;
-            border-top: 2px solid #000;
+            font-size: 10px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 3px;
+            margin-top: 3px;
         }
 
         .footer {
-            margin-top: 60px;
+            margin-top: 15px;
             text-align: center;
-            font-size: 11px;
-            color: #999;
-            font-style: italic;
+            font-size: 7px;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
         }
 
         @media print {
+            @page {
+                size: 1.5in auto;
+                margin: 0;
+            }
             body { background: none; }
-            .invoice-container { width: 100%; padding: 0; margin: 0; }
             .no-print { display: none; }
+            .receipt-container { width: 1.5in; padding: 0.1in; }
         }
 
         .print-btn {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
             background: #000;
             color: #fff;
             border: none;
-            border-radius: 5px;
+            font-size: 10px;
             cursor: pointer;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <button class="no-print print-btn" onclick="window.print()">Print Invoice</button>
+    <button class="no-print print-btn" onclick="window.print()">Print</button>
 
-    <div class="invoice-container">
+    <div class="receipt-container">
         <div class="header">
-            <div class="logo">
-                <h1>{{ $order->site_id == 1 ? 'ACHARU' : 'TAJA SHUTKI' }}</h1>
-                <p>Artisanal Quality Delivered</p>
-            </div>
-            <div class="invoice-meta">
-                <h2>INVOICE</h2>
-                <p>#{{ $order->tracking_id }}</p>
-                <span>{{ $order->created_at->format('M d, Y') }}</span>
-            </div>
+            <h1>{{ $order->site_id == 1 ? 'ACHARU' : 'TAJA SHUTKI' }}</h1>
+            <p>Order: #{{ substr($order->tracking_id, -6) }}</p>
+            <p>{{ $order->created_at->format('d/m/Y H:i') }}</p>
         </div>
 
-        <div class="info-grid">
-            <div class="info-block">
-                <h4>Bill To:</h4>
-                <p><strong>{{ $order->customer_name }}</strong></p>
-                <p>{{ $order->customer_phone }}</p>
-                <p>{{ $order->customer_address }}</p>
-                <p>{{ $order->location }}</p>
-            </div>
-            <div class="info-block" style="text-align: right;">
-                <h4>Order Summary:</h4>
-                <p>Status: <strong>{{ strtoupper($order->status) }}</strong></p>
-                <p>Payment: <strong>{{ strtoupper($order->payment_method) }}</strong></p>
-                <p>Payment Status: <strong>{{ strtoupper($order->payment_status) }}</strong></p>
-            </div>
+        <div class="info-block">
+            <p><strong>To: {{ $order->customer_name }}</strong></p>
+            <p>{{ $order->customer_phone }}</p>
+            <p style="font-size: 7px;">{{ $order->customer_address }}</p>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Item Description</th>
-                    <th style="text-align: center;">Qty</th>
-                    <th style="text-align: right;">Price</th>
-                    <th style="text-align: right;">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($order->items as $item)
-                <tr>
-                    <td>
-                        <div class="item-name">{{ $item->name }}</div>
-                        <div class="item-weight">{{ $item->weight }}kg</div>
-                    </td>
-                    <td style="text-align: center;">{{ $item->quantity }}</td>
-                    <td style="text-align: right;">৳{{ number_format($item->price, 2) }}</td>
-                    <td style="text-align: right; font-weight: bold;">৳{{ number_format($item->price * $item->quantity, 2) }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="items-table">
+            @foreach($order->items as $item)
+            <div class="item-row">
+                <div class="item-header">{{ $item->quantity }}x {{ $item->name }}</div>
+                <div class="item-details">
+                    <span>@ ৳{{ number_format($item->price, 0) }}</span>
+                    <span>৳{{ number_format($item->price * $item->quantity, 0) }}</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
 
         <div class="totals">
             <div class="total-row">
                 <span>Subtotal:</span>
-                <span>৳{{ number_format($order->subtotal, 2) }}</span>
+                <span>৳{{ number_format($order->subtotal, 0) }}</span>
             </div>
             <div class="total-row">
-                <span>Delivery Charge:</span>
-                <span>৳{{ number_format($order->delivery_charge, 2) }}</span>
+                <span>Delivery:</span>
+                <span>৳{{ number_format($order->delivery_charge, 0) }}</span>
             </div>
             <div class="total-row grand-total">
                 <span>TOTAL:</span>
-                <span>৳{{ number_format($order->total_amount, 2) }}</span>
+                <span>৳{{ number_format($order->total_amount, 0) }}</span>
             </div>
         </div>
 
         <div class="footer">
-            <p>Thank you for choosing artisanal excellence.</p>
-            <p style="font-size: 9px; margin-top: 10px;">This is a computer generated invoice. No signature required.</p>
+            <p>Payment: {{ strtoupper($order->payment_method) }}</p>
+            <p><strong>{{ strtoupper($order->payment_status) }}</strong></p>
+            <p style="margin-top: 10px;">Thank you for your order!</p>
         </div>
     </div>
-
-    <script>
-        // Auto-open print dialog
-        window.onload = function() {
-            // window.print();
-        }
-    </script>
 </body>
 </html>
