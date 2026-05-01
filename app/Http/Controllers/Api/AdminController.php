@@ -59,7 +59,10 @@ class AdminController extends BaseController
 
     // Product CRUD
     public function getProducts(Request $request) {
-        $products = Product::with(['category', 'site', 'images'])->paginate(20);
+        $siteId = $request->site_id;
+        $products = Product::where('site_id', $siteId)
+            ->with(['category', 'site', 'images'])
+            ->paginate(20);
         return $this->sendResponse($products, 'Admin products retrieved.');
     }
 
