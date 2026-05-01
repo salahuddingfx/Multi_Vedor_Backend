@@ -12,4 +12,4 @@ The **Engine** that powers the entire ecosystem. A robust, secure, and lightning
 - **Premium Invoice Generation:** Server-side Blade templates for printable invoices.
 
 ---
-👨‍💻 Developed by **Salahuddin GFX**
+👨‍💻 Developed by **Salah Uddin Kader**
