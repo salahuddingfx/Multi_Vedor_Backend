@@ -207,6 +207,11 @@ class AdminController extends BaseController
         return $this->sendResponse(User::where('role', 'admin')->get(), 'Admin users retrieved.');
     }
 
+    public function generateInvoice($id) {
+        $order = Order::with('items')->findOrFail($id);
+        return view('invoice', compact('order'));
+    }
+
     public function storeUser(Request $request) {
         $validated = $request->validate([
             'name' => 'required',
