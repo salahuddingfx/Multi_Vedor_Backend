@@ -196,6 +196,12 @@ class AdminController extends BaseController
         return $this->sendResponse($order, 'Order status updated to ' . $request->status);
     }
 
+    public function updatePaymentStatus(Request $request, $id) {
+        $order = Order::findOrFail($id);
+        $order->update(['payment_status' => $request->payment_status]);
+        return $this->sendResponse($order, 'Payment status updated to ' . $request->payment_status);
+    }
+
     // User Management (Admins)
     public function getUsers() {
         return $this->sendResponse(User::where('role', 'admin')->get(), 'Admin users retrieved.');

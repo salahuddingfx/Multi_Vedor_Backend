@@ -57,6 +57,7 @@ Route::prefix('admin')->group(function () {
     // Orders
     Route::get('/orders', [AdminController::class, 'getOrders']);
     Route::put('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
+    Route::put('/orders/{id}/payment-status', [AdminController::class, 'updatePaymentStatus']);
     
     // Hero Slides
     Route::get('/hero-slides', [AdminController::class, 'getHeroSlides']);
