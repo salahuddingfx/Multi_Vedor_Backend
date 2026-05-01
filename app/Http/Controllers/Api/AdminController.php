@@ -49,19 +49,23 @@ class AdminController extends BaseController
     public function getStats(Request $request) {
         $siteId = $request->site_id;
 
-        // Calculate sales for the last 7 days for the chart
+        // Calculate sales for the last 7 days for the chart efficiently
+        $startDate = now()->subDays(6)->startOfDay();
+        $chartDataRaw = Order::where('site_id', $siteId)
+            ->where('status', '!=', 'cancelled')
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+            ->groupBy('date')
+            ->get()
+            ->pluck('total', 'date');
+
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
             $dayName = now()->subDays($i)->format('D');
-            $sales = (float) Order::where('site_id', $siteId)
-                ->whereDate('created_at', $date)
-                ->where('status', '!=', 'cancelled')
-                ->sum('total_amount');
-            
             $chartData[] = [
                 'name' => $dayName,
-                'sales' => $sales
+                'sales' => (float) ($chartDataRaw[$date] ?? 0)
             ];
         }
 
