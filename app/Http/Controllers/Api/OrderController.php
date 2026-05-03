@@ -9,6 +9,11 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\User;
+use App\Notifications\AdminNotification;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderNotification;
 
 class OrderController extends BaseController
 {
@@ -85,6 +90,24 @@ class OrderController extends BaseController
 
             foreach ($orderItems as $item) {
                 $order->items()->create($item);
+            }
+
+            // Notify Admins
+            $admins = User::all(); // In a real app, filter by role
+            Notification::send($admins, new AdminNotification([
+                'title' => 'New Order Received',
+                'message' => "Order {$trackingId} has been placed on {$site->name}.",
+                'type' => 'order',
+                'link' => "/orders",
+                'store' => $site->slug
+            ]));
+
+            // Send Email to Admin
+            try {
+                Mail::to(config('mail.from.address'))->send(new OrderNotification($order));
+            } catch (\Exception $e) {
+                // Log the error but don't fail the order
+                \Log::error('Mail sending failed: ' . $e->getMessage());
             }
 
             return $this->sendResponse($order->load('items'), 'Order placed successfully. Tracking ID: ' . $trackingId);

@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     protected $fillable = [
-        'site_id', 'category_id', 'name', 'slug', 'description', 
-        'price', 'weight', 'stock', 'is_featured'
+        'site_id', 'category_id', 'name', 'name_bn', 'sku', 'slug', 'description', 'description_bn',
+        'price', 'original_price', 'discount_percentage', 'weight', 'stock', 'is_featured'
     ];
 
     public function site(): BelongsTo { return $this->belongsTo(Site::class); }

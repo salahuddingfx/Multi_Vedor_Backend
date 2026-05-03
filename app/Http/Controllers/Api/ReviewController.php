@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Review;
 use App\Models\Site;
+use App\Models\ReviewMedia;
 use Illuminate\Http\Request;
 
 class ReviewController extends BaseController
@@ -26,7 +27,7 @@ class ReviewController extends BaseController
             }
 
             $reviews = $query
-                ->with('product:id,name,slug')
+                ->with(['product:id,name,slug', 'media'])
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->get();
@@ -48,6 +49,8 @@ class ReviewController extends BaseController
             'customer_name' => 'required|string|max:255',
             'rating'        => 'required|numeric|min:1|max:5',
             'comment'       => 'nullable|string',
+            'images.*'      => 'nullable|image|max:5120', // Max 5MB per image
+            'videos.*'      => 'nullable|mimes:mp4,mov,avi,wmv|max:20480', // Max 20MB per video
         ]);
 
         $review = Review::create([
@@ -59,7 +62,31 @@ class ReviewController extends BaseController
             'is_approved'   => false,
         ]);
 
-        return $this->sendResponse($review, 'Review submitted successfully. Waiting for approval.');
+        // Handle Image Uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('reviews/images', 'public');
+                ReviewMedia::create([
+                    'review_id' => $review->id,
+                    'file_path' => asset('storage/' . $path),
+                    'type'      => 'image'
+                ]);
+            }
+        }
+
+        // Handle Video Uploads
+        if ($request->hasFile('videos')) {
+            foreach ($request->file('videos') as $video) {
+                $path = $video->store('reviews/videos', 'public');
+                ReviewMedia::create([
+                    'review_id' => $review->id,
+                    'file_path' => asset('storage/' . $path),
+                    'type'      => 'video'
+                ]);
+            }
+        }
+
+        return $this->sendResponse($review->load('media'), 'Review submitted successfully. Waiting for approval.');
     }
 
     // For Admin: Get all reviews
@@ -67,7 +94,7 @@ class ReviewController extends BaseController
     {
         $siteId = $request->site_id;
         $reviews = Review::where('site_id', $siteId)
-            ->with('product')
+            ->with(['product', 'media'])
             ->orderBy('created_at', 'desc')
             ->get();
         return $this->sendResponse($reviews, 'Admin reviews retrieved successfully.');

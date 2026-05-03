@@ -25,4 +25,9 @@ class Review extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function media()
+    {
+        return $this->hasMany(ReviewMedia::class);
+    }
 }

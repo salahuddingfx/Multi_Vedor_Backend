@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +52,7 @@ Route::prefix('admin')->group(function () {
     
     // Protected Admin Routes
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/me', [AdminController::class, 'me']);
         // Stats
         Route::get('/stats', [AdminController::class, 'getStats']);
 
@@ -68,7 +70,10 @@ Route::prefix('admin')->group(function () {
     
     // Orders
     Route::get('/orders', [AdminController::class, 'getOrders']);
-    Route::put('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
+    Route::post('/inventory/return', [AdminController::class, 'recordReturn']);
+    Route::get('/inventory/returns', [AdminController::class, 'getReturns']);
+    Route::get('/sales/stats', [AdminController::class, 'getSalesStats']);
+    Route::patch('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
     Route::put('/orders/{id}/payment-status', [AdminController::class, 'updatePaymentStatus']);
     
     // Hero Slides
@@ -104,5 +109,11 @@ Route::prefix('admin')->group(function () {
 
     // Coupons
     Route::apiResource('coupons', CouponController::class);
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::put('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
     });
 });
