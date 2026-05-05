@@ -75,6 +75,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/sales/stats', [AdminController::class, 'getSalesStats']);
     Route::patch('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
     Route::put('/orders/{id}/payment-status', [AdminController::class, 'updatePaymentStatus']);
+    Route::put('/orders/{id}', [AdminController::class, 'updateOrder']);
     
     // Hero Slides
     Route::get('/hero-slides', [AdminController::class, 'getHeroSlides']);

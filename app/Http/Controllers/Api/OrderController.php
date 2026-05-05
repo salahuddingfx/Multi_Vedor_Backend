@@ -12,8 +12,6 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Notifications\AdminNotification;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\OrderNotification;
 
 class OrderController extends BaseController
 {
@@ -105,13 +103,6 @@ class OrderController extends BaseController
                 'store' => $site->slug
             ]));
 
-            // Send Email to Admin
-            try {
-                Mail::to(config('mail.from.address'))->send(new OrderNotification($order));
-            } catch (\Exception $e) {
-                // Log the error but don't fail the order
-                \Log::error('Mail sending failed: ' . $e->getMessage());
-            }
 
             return $this->sendResponse($order->load('items'), 'Order placed successfully. Tracking ID: ' . $trackingId);
         });
