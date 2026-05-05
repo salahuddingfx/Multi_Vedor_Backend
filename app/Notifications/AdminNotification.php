@@ -5,11 +5,9 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
-class AdminNotification extends Notification implements ShouldBroadcastNow
+class AdminNotification extends Notification
 {
     use Queueable;
 
@@ -30,7 +28,7 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database'];
     }
 
     /**
@@ -47,21 +45,5 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
             'link' => $this->data['link'] ?? null,
             'store' => $this->data['store'] ?? null,
         ];
-    }
-
-    /**
-     * Get the broadcast representation of the notification.
-     */
-    public function toBroadcast(object $notifiable): BroadcastMessage
-    {
-        return new BroadcastMessage([
-            'id' => $this->id,
-            'title' => $this->data['title'] ?? 'New Notification',
-            'message' => $this->data['message'] ?? '',
-            'type' => $this->data['type'] ?? 'info',
-            'link' => $this->data['link'] ?? null,
-            'store' => $this->data['store'] ?? null,
-            'created_at' => now()->toISOString(),
-        ]);
     }
 }
