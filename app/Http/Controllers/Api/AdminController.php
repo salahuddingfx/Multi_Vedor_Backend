@@ -308,6 +308,12 @@ class AdminController extends BaseController
         return $this->sendResponse($order, 'Order details updated.');
     }
 
+    public function deleteOrder($id) {
+        $order = Order::findOrFail($id);
+        $order->delete();
+        return $this->sendResponse(null, 'Order deleted successfully.');
+    }
+
     // User Management (Admins)
     public function getUsers() {
         return $this->sendResponse(User::where('role', 'admin')->get(), 'Admin users retrieved.');

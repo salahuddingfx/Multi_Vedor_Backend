@@ -76,6 +76,7 @@ Route::prefix('admin')->group(function () {
     Route::patch('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
     Route::put('/orders/{id}/payment-status', [AdminController::class, 'updatePaymentStatus']);
     Route::put('/orders/{id}', [AdminController::class, 'updateOrder']);
+    Route::delete('/orders/{id}', [AdminController::class, 'deleteOrder']);
     
     // Hero Slides
     Route::get('/hero-slides', [AdminController::class, 'getHeroSlides']);
