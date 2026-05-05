@@ -577,7 +577,39 @@ class AdminController extends BaseController
                     ->get();
             }
 
-            // 9. Chart Data
+            // 9. Detailed Activity Timeline (Master Report)
+            $ordersTimeline = DB::table('orders')
+                ->whereBetween('created_at', [$startDate, $endDate]);
+            if ($siteId) {
+                $ordersTimeline->where('site_id', $siteId);
+            }
+            $ordersTimeline = $ordersTimeline->select([
+                DB::raw("'order' as type"),
+                'id',
+                'customer_name as title',
+                'total_amount as value',
+                'status as detail',
+                'created_at'
+            ])->get();
+
+            $returnsTimeline = DB::table('product_returns')
+                ->join('products', 'product_returns.product_id', '=', 'products.id')
+                ->whereBetween('product_returns.created_at', [$startDate, $endDate]);
+            if ($siteId) {
+                $returnsTimeline->where('products.site_id', $siteId);
+            }
+            $returnsTimeline = $returnsTimeline->select([
+                DB::raw("'return' as type"),
+                'product_returns.id',
+                'products.name as title',
+                'product_returns.amount as value',
+                'product_returns.reason as detail',
+                'product_returns.created_at'
+            ])->get();
+
+            $timeline = $ordersTimeline->concat($returnsTimeline)->sortByDesc('created_at')->values();
+
+            // 10. Chart Data
             $chartData = $this->getOptimizedChartData($startDate, $endDate, $siteId, $range);
 
             $totalProductPrice = (float)($baseStats->total_product_price ?? 0);
@@ -600,7 +632,8 @@ class AdminController extends BaseController
                 'top_products' => $topProducts,
                 'status_distribution' => $statusDistribution,
                 'low_stock_products' => $lowStockProducts,
-                'site_breakdown' => $siteBreakdown
+                'site_breakdown' => $siteBreakdown,
+                'timeline' => $timeline
             ];
         });
     }
