@@ -150,6 +150,9 @@ class AdminController extends BaseController
             }
         }
 
+        // Clear product caches
+        $this->clearStorefrontCache($product->site_id);
+
         return $this->sendResponse($product->load('images'), 'Product created with images.');
     }
 
@@ -183,7 +186,12 @@ class AdminController extends BaseController
         $product->update($validated);
 
         if ($request->hasFile('images')) {
-            $product->images()->delete(); // Clear old ones for simplicity
+            // Delete old images from storage
+            foreach($product->images as $oldImg) {
+                $this->deleteFileFromPath($oldImg->image_path);
+            }
+            $product->images()->delete(); 
+
             $primaryIndex = (int) $request->input('primary_image_index', 0);
             foreach ($request->file('images') as $index => $image) {
                 $path = $image->store('products', 'public');
@@ -195,11 +203,19 @@ class AdminController extends BaseController
             }
         }
 
+        $this->clearStorefrontCache($product->site_id);
+
         return $this->sendResponse($product->load('images'), 'Product updated.');
     }
 
     public function deleteProduct($id) {
-        Product::findOrFail($id)->delete();
+        $product = Product::findOrFail($id);
+        foreach($product->images as $oldImg) {
+            $this->deleteFileFromPath($oldImg->image_path);
+        }
+        $siteId = $product->site_id;
+        $product->delete();
+        $this->clearStorefrontCache($siteId);
         return $this->sendResponse(null, 'Product deleted.');
     }
 
@@ -214,19 +230,14 @@ class AdminController extends BaseController
         $validated = $request->validate([
             'site_id' => 'required',
             'name' => 'required',
-            'is_featured' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+            'is_featured' => 'boolean'
         ]);
         
         $validated['slug'] = Str::slug($request->name);
-        
-        if ($request->hasFile('image')) {
-            $imageName = time() . '_' . $request->image->getClientOriginalName();
-            $request->image->move(public_path('uploads/categories'), $imageName);
-            $validated['image_path'] = url('uploads/categories/' . $imageName);
-        }
-
         $category = Category::create($validated);
+        
+        $this->clearStorefrontCache($request->site_id);
+        
         return $this->sendResponse($category, 'Category created.');
     }
 
@@ -234,24 +245,22 @@ class AdminController extends BaseController
         $category = Category::findOrFail($id);
         $validated = $request->validate([
             'name' => 'required',
-            'is_featured' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+            'is_featured' => 'boolean'
         ]);
         
         $validated['slug'] = Str::slug($request->name);
-
-        if ($request->hasFile('image')) {
-            $imageName = time() . '_' . $request->image->getClientOriginalName();
-            $request->image->move(public_path('uploads/categories'), $imageName);
-            $validated['image_path'] = url('uploads/categories/' . $imageName);
-        }
-
         $category->update($validated);
+        
+        $this->clearStorefrontCache($category->site_id);
+        
         return $this->sendResponse($category, 'Category updated.');
     }
 
     public function deleteCategory($id) {
-        Category::findOrFail($id)->delete();
+        $category = Category::findOrFail($id);
+        $siteId = $category->site_id;
+        $category->delete();
+        $this->clearStorefrontCache($siteId);
         return $this->sendResponse(null, 'Category deleted.');
     }
 
@@ -269,8 +278,8 @@ class AdminController extends BaseController
         $order = Order::findOrFail($id);
         $order->update(['status' => $request->status]);
         
-        // Dispatch event for real-time tracking update
         event(new OrderStatusChanged($order));
+        $this->clearStorefrontCache($order->site_id);
         
         return $this->sendResponse($order, 'Order status updated to ' . $request->status);
     }
@@ -279,7 +288,6 @@ class AdminController extends BaseController
         $order = Order::findOrFail($id);
         $order->update(['payment_status' => $request->payment_status]);
         
-        // Dispatch event for real-time tracking update
         event(new OrderStatusChanged($order));
         
         return $this->sendResponse($order, 'Payment status updated to ' . $request->payment_status);
@@ -320,6 +328,7 @@ class AdminController extends BaseController
         }
 
         $slide = HeroSlide::create($validated);
+        $this->clearStorefrontCache($request->site_id);
         return $this->sendResponse($slide, 'Hero slide created.');
     }
 
@@ -336,16 +345,22 @@ class AdminController extends BaseController
         ]);
 
         if ($request->hasFile('image')) {
+            $this->deleteFileFromPath($slide->image_path);
             $path = $request->file('image')->store('slides', 'public');
             $validated['image_path'] = asset('storage/' . $path);
         }
 
         $slide->update($validated);
+        $this->clearStorefrontCache($slide->site_id);
         return $this->sendResponse($slide, 'Hero slide updated.');
     }
 
     public function deleteHeroSlide($id) {
-        HeroSlide::findOrFail($id)->delete();
+        $slide = HeroSlide::findOrFail($id);
+        $this->deleteFileFromPath($slide->image_path);
+        $siteId = $slide->site_id;
+        $slide->delete();
+        $this->clearStorefrontCache($siteId);
         return $this->sendResponse(null, 'Hero slide deleted.');
     }
 
@@ -672,5 +687,34 @@ class AdminController extends BaseController
     {
         $returns = DB::table('product_returns')->latest()->get();
         return $this->sendResponse($returns, 'Returns retrieved successfully.');
+    }
+
+    /**
+     * Clear all storefront-related caches for a specific site.
+     */
+    private function clearStorefrontCache($siteId) {
+        $site = Site::find($siteId);
+        if (!$site) return;
+
+        Cache::forget("init_{$site->slug}");
+        Cache::forget("site_settings_{$siteId}");
+        
+        // Note: For product pagination caches, we might need a more sophisticated approach 
+        // like cache tags if using a driver that supports them (like redis).
+        // Since we are likely using 'file' or 'database', we'll just clear the main ones.
+    }
+
+    /**
+     * Delete a file from the storage/public disk given its URL/path.
+     */
+    private function deleteFileFromPath($url) {
+        if (!$url) return;
+        
+        // Extract relative path from URL (e.g., http://.../storage/slides/xyz.jpg -> slides/xyz.jpg)
+        $path = str_replace(asset('storage/'), '', $url);
+        
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+        }
     }
 }
