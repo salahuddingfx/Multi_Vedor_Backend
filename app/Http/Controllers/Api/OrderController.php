@@ -15,10 +15,10 @@ use Illuminate\Support\Facades\Notification;
 
 class OrderController extends BaseController
 {
-    public function store(Request $request, $site_slug)
+    public function store(Request $request, $site)
     {
-        $site = Site::where('slug', $site_slug)->first();
-        if (!$site) return $this->sendError('Site not found.');
+        $siteObj = Site::where('slug', $site)->first();
+        if (!$siteObj) return $this->sendError('Site not found.');
 
         $request->validate([
             'customer_name' => 'required|string',
