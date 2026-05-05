@@ -15,13 +15,14 @@ class StorefrontController extends Controller
      */
     public function initialize($site_slug)
     {
-        $site = Site::where('slug', $site_slug)->with(['categories', 'heroSlides'])->firstOrFail();
-        
-        return response()->json([
-            'site' => $site,
-            'categories' => $site->categories,
-            'hero_slides' => $site->heroSlides,
-        ]);
+        return \Illuminate\Support\Facades\Cache::remember("init_{$site_slug}", 3600, function() use ($site_slug) {
+            $site = Site::where('slug', $site_slug)->with(['categories', 'heroSlides'])->firstOrFail();
+            return [
+                'site' => $site,
+                'categories' => $site->categories,
+                'hero_slides' => $site->heroSlides,
+            ];
+        });
     }
 
     /**
@@ -29,22 +30,29 @@ class StorefrontController extends Controller
      */
     public function getProducts(Request $request, $site_slug)
     {
-        $site = Site::where('slug', $site_slug)->firstOrFail();
+        $categorySlug = $request->query('category');
+        $isFeatured = $request->has('featured');
+        $page = $request->query('page', 1);
         
-        $query = Product::where('site_id', $site->id);
+        $cacheKey = "products_{$site_slug}_{$categorySlug}_{$isFeatured}_{$page}";
         
-        if ($request->has('category')) {
-            $category = Category::where('slug', $request->category)->first();
-            if ($category) {
-                $query->where('category_id', $category->id);
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($request, $site_slug, $categorySlug, $isFeatured) {
+            $site = Site::where('slug', $site_slug)->firstOrFail();
+            $query = Product::where('site_id', $site->id)->with('images');
+            
+            if ($categorySlug) {
+                $category = Category::where('slug', $categorySlug)->first();
+                if ($category) {
+                    $query->where('category_id', $category->id);
+                }
             }
-        }
 
-        if ($request->has('featured')) {
-            $query->where('is_featured', true);
-        }
+            if ($isFeatured) {
+                $query->where('is_featured', true);
+            }
 
-        return response()->json($query->paginate(12));
+            return $query->paginate(12);
+        });
     }
 
     /**
@@ -52,12 +60,12 @@ class StorefrontController extends Controller
      */
     public function getProductDetails($site_slug, $slug)
     {
-        $site = Site::where('slug', $site_slug)->firstOrFail();
-        $product = Product::where('site_id', $site->id)
+        return \Illuminate\Support\Facades\Cache::remember("product_{$site_slug}_{$slug}", 3600, function() use ($site_slug, $slug) {
+            $site = Site::where('slug', $site_slug)->firstOrFail();
+            return Product::where('site_id', $site->id)
                           ->where('slug', $slug)
-                          ->with('category')
+                          ->with(['category', 'images'])
                           ->firstOrFail();
-                          
-        return response()->json($product);
+        });
     }
 }
