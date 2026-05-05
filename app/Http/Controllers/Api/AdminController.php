@@ -197,13 +197,16 @@ class AdminController extends BaseController
             }
         }
 
+        // Handle primary image update
+        if ($request->has('primary_image_id')) {
+            $product->images()->update(['is_primary' => false]);
+            $product->images()->where('id', $request->primary_image_id)->update(['is_primary' => true]);
+        } elseif ($request->has('primary_image_index')) {
+            $product->images()->update(['is_primary' => false]);
+        }
+
         if ($request->hasFile('images')) {
             $primaryIndex = (int) $request->input('primary_image_index', 0);
-            
-            // If we are adding new images, we might want to unset previous primary images if the new one is primary
-            if ($request->has('primary_image_index')) {
-                $product->images()->update(['is_primary' => false]);
-            }
 
             foreach ($request->file('images') as $index => $image) {
                 $path = $image->store('products', 'public');
