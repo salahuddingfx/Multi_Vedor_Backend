@@ -68,7 +68,8 @@ class OrderController extends BaseController
             }
 
             $totalAmount = $subtotal + $deliveryCharge;
-            $trackingId = 'ORD-' . date('Y') . '-' . strtoupper(Str::random(6));
+            $prefix = ($site->slug === 'acharu') ? 'ACH' : (($site->slug === 'tajashutki') ? 'TSK' : 'ORD');
+            $trackingId = $prefix . '-' . date('y') . strtoupper(Str::random(5));
 
             $order = Order::create([
                 'site_id' => $site->id,
