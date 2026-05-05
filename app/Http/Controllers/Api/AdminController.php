@@ -454,23 +454,34 @@ class AdminController extends BaseController
     {
         $siteId = $request->query('site_id');
         $range = $request->query('range', 'monthly');
+        $customStart = $request->query('start_date');
+        $customEnd = $request->query('end_date');
         
-        $cacheKey = "sales_stats_{$siteId}_{$range}";
+        $cacheKey = "sales_stats_{$siteId}_{$range}_{$customStart}_{$customEnd}";
         
-        return Cache::remember($cacheKey, 300, function() use ($siteId, $range) {
+        return Cache::remember($cacheKey, 300, function() use ($siteId, $range, $customStart, $customEnd) {
             $now = now();
-            $startDate = match($range) {
-                'daily' => $now->subHours(24),
-                'weekly' => $now->subDays(7),
-                'monthly' => $now->subDays(30),
-                '90days' => $now->subDays(90),
-                'yearly' => $now->subYear(),
-                default => $now->subDays(30),
-            };
+            
+            if ($customStart && $customEnd) {
+                $startDate = \Illuminate\Support\Carbon::parse($customStart)->startOfDay();
+                $endDate = \Illuminate\Support\Carbon::parse($customEnd)->endOfDay();
+            } else {
+                $startDate = match($range) {
+                    'daily' => $now->copy()->subHours(24),
+                    'weekly' => $now->copy()->subDays(7),
+                    'monthly' => $now->copy()->subDays(30),
+                    '90days' => $now->copy()->subDays(90),
+                    'yearly' => $now->copy()->subYear(),
+                    default => $now->copy()->subDays(30),
+                };
+                $endDate = $now;
+            }
+
+            // Update all queries below to use both $startDate and $endDate
 
             // 1. Aggregated Base Stats (Single SQL Query for Main Metrics)
             $statsQuery = DB::table('orders')
-                ->where('created_at', '>=', $startDate)
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', '!=', 'cancelled');
             
             if ($siteId) {
@@ -487,7 +498,7 @@ class AdminController extends BaseController
             // 2. Returns Stats
             $returnsQuery = DB::table('product_returns')
                 ->join('products', 'product_returns.product_id', '=', 'products.id')
-                ->where('product_returns.created_at', '>=', $startDate);
+                ->whereBetween('product_returns.created_at', [$startDate, $endDate]);
                 
             if ($siteId) {
                 $returnsQuery->where('products.site_id', $siteId);
@@ -496,7 +507,7 @@ class AdminController extends BaseController
 
             // 3. Logistics Loss (Delivery charges of Returned or Cancelled orders)
             $logisticsLossQuery = DB::table('orders')
-                ->where('created_at', '>=', $startDate)
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->whereIn('status', ['returned', 'cancelled']);
             if ($siteId) {
                 $logisticsLossQuery->where('site_id', $siteId);
@@ -505,7 +516,7 @@ class AdminController extends BaseController
 
             // 4. Cancelled Stats
             $cancelledQuery = DB::table('orders')
-                ->where('created_at', '>=', $startDate)
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 'cancelled');
             if ($siteId) {
                 $cancelledQuery->where('site_id', $siteId);
@@ -519,7 +530,7 @@ class AdminController extends BaseController
             $topProductsQuery = DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->join('products', 'order_items.product_id', '=', 'products.id')
-                ->where('orders.created_at', '>=', $startDate)
+                ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->whereNotIn('orders.status', ['cancelled', 'returned']);
                 
             if ($siteId) {
@@ -538,7 +549,7 @@ class AdminController extends BaseController
 
             // 6. Order Status Distribution
             $statusDistributionQuery = DB::table('orders')
-                ->where('created_at', '>=', $startDate);
+                ->whereBetween('created_at', [$startDate, $endDate]);
             if ($siteId) {
                 $statusDistributionQuery->where('site_id', $siteId);
             }
@@ -559,7 +570,7 @@ class AdminController extends BaseController
             if (!$siteId) {
                 $siteBreakdown = DB::table('orders')
                     ->join('sites', 'orders.site_id', '=', 'sites.id')
-                    ->where('orders.created_at', '>=', $startDate)
+                    ->whereBetween('orders.created_at', [$startDate, $endDate])
                     ->whereNotIn('orders.status', ['cancelled', 'returned'])
                     ->select('sites.name', DB::raw('SUM(total_amount) as revenue'))
                     ->groupBy('sites.id', 'sites.name')
@@ -567,7 +578,7 @@ class AdminController extends BaseController
             }
 
             // 9. Chart Data
-            $chartData = $this->getOptimizedChartData($startDate, $siteId, $range);
+            $chartData = $this->getOptimizedChartData($startDate, $endDate, $siteId, $range);
 
             $totalProductPrice = (float)($baseStats->total_product_price ?? 0);
             $totalDelivery = (float)($baseStats->total_delivery_charge ?? 0);
@@ -594,7 +605,7 @@ class AdminController extends BaseController
         });
     }
 
-    private function getOptimizedChartData($startDate, $siteId, $range)
+    private function getOptimizedChartData($startDate, $endDate, $siteId, $range)
     {
         $dateFormat = match($range) {
             'daily' => '%H:00',
@@ -603,7 +614,7 @@ class AdminController extends BaseController
         };
 
         $query = DB::table('orders')
-            ->where('created_at', '>=', $startDate)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->where('status', '!=', 'cancelled');
 
         if ($siteId) {
