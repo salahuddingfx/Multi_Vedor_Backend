@@ -481,15 +481,17 @@ class AdminController extends BaseController
 
             // 1. Aggregated Base Stats (Single SQL Query for Main Metrics)
             $statsQuery = DB::table('orders')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->where('status', '!=', 'cancelled');
+                ->whereBetween('created_at', [$startDate, $endDate]);
             
             if ($siteId) {
                 $statsQuery->where('site_id', $siteId);
             }
 
             $baseStats = $statsQuery->select([
-                DB::raw('SUM(subtotal) as total_product_price'),
+                // Realized Revenue: Only Delivered orders
+                DB::raw("SUM(CASE WHEN status = 'delivered' THEN subtotal ELSE 0 END) as realized_revenue"),
+                // Total Value: All non-cancelled orders
+                DB::raw("SUM(CASE WHEN status != 'cancelled' THEN subtotal ELSE 0 END) as total_product_price"),
                 DB::raw('SUM(delivery_charge) as total_delivery_charge'),
                 DB::raw('COUNT(*) as total_orders'),
                 DB::raw('COUNT(DISTINCT customer_phone) as total_customers')
@@ -613,11 +615,15 @@ class AdminController extends BaseController
             $chartData = $this->getOptimizedChartData($startDate, $endDate, $siteId, $range);
 
             $totalProductPrice = (float)($baseStats->total_product_price ?? 0);
+            $realizedRevenue = (float)($baseStats->realized_revenue ?? 0);
             $totalDelivery = (float)($baseStats->total_delivery_charge ?? 0);
-            $netRevenue = $totalProductPrice - $totalReturns - $logisticsLoss;
+            
+            // Net Profit estimation now uses Realized Revenue as base
+            $netRevenue = $realizedRevenue - $totalReturns - $logisticsLoss;
 
             return [
                 'total_product_price' => $totalProductPrice,
+                'realized_revenue' => $realizedRevenue,
                 'total_delivery_charge' => $totalDelivery,
                 'logistics_loss' => $logisticsLoss,
                 'total_revenue' => $netRevenue,
