@@ -67,7 +67,12 @@ class OrderController extends BaseController
 
             $totalAmount = $subtotal + $deliveryCharge;
             $prefix = ($site->slug === 'acharu') ? 'ACH' : (($site->slug === 'tajashutki') ? 'TSK' : 'ORD');
-            $trackingId = $prefix . '-' . date('y') . strtoupper(Str::random(5));
+            
+            // Get first product SKU for ID generation
+            $firstProduct = Product::find($request->items[0]['product_id']);
+            $skuPart = $firstProduct ? strtoupper(substr($firstProduct->sku, 0, 3)) : 'X';
+            
+            $trackingId = $prefix . '-' . date('y') . $skuPart . '-' . strtoupper(Str::random(4));
 
             $order = Order::create([
                 'site_id' => $site->id,
@@ -88,6 +93,10 @@ class OrderController extends BaseController
             ]);
 
             foreach ($orderItems as $item) {
+                // Get current SKU to store in order items
+                $prod = Product::find($item['product_id']);
+                $item['sku'] = $prod ? $prod->sku : '';
+                
                 $order->items()->create($item);
                 // Increment product sales count
                 Product::where('id', $item['product_id'])->increment('sales_count', $item['quantity']);
