@@ -8,15 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->index('created_at');
-        });
-        Schema::table('product_returns', function (Blueprint $table) {
-            $table->index('created_at');
-        });
-        Schema::table('contact_messages', function (Blueprint $table) {
-            $table->index('created_at');
-        });
+        try {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->index('created_at');
+            });
+        } catch (\Exception $e) {}
+
+        try {
+            Schema::table('product_returns', function (Blueprint $table) {
+                $table->index('created_at');
+            });
+        } catch (\Exception $e) {}
+
+        try {
+            Schema::table('contact_messages', function (Blueprint $table) {
+                $table->index('created_at');
+            });
+        } catch (\Exception $e) {}
     }
 
     public function down(): void
