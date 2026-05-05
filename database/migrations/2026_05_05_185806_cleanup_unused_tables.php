@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::dropIfExists('site_settings');
+        Schema::dropIfExists('developer_credits');
     }
 
     /**
@@ -19,6 +20,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::create('site_settings', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->integer('free_delivery_threshold')->nullable();
+            $table->json('social_links')->nullable();
+        });
+
+        Schema::create('developer_credits', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
     }
 };
