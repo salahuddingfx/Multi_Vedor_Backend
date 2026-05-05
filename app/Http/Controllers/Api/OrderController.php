@@ -33,7 +33,7 @@ class OrderController extends BaseController
             'sender_number' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($request, $site) {
+        return DB::transaction(function () use ($request, $siteObj) {
             $subtotal = 0;
             $totalWeight = 0;
             $orderItems = [];
@@ -66,7 +66,7 @@ class OrderController extends BaseController
             }
 
             $totalAmount = $subtotal + $deliveryCharge;
-            $prefix = ($site->slug === 'acharu') ? 'ACH' : (($site->slug === 'tajashutki') ? 'TSK' : 'ORD');
+            $prefix = ($siteObj->slug === 'acharu') ? 'ACH' : (($siteObj->slug === 'tajashutki') ? 'TSK' : 'ORD');
             
             // Get first product SKU for ID generation
             $firstProduct = Product::find($request->items[0]['product_id']);
@@ -75,7 +75,7 @@ class OrderController extends BaseController
             $trackingId = $prefix . '-' . date('y') . $skuPart . '-' . strtoupper(Str::random(4));
 
             $order = Order::create([
-                'site_id' => $site->id,
+                'site_id' => $siteObj->id,
                 'tracking_id' => $trackingId,
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
@@ -106,10 +106,10 @@ class OrderController extends BaseController
             $admins = User::all(); // In a real app, filter by role
             Notification::send($admins, new AdminNotification([
                 'title' => 'New Order Received',
-                'message' => "Order {$trackingId} has been placed on {$site->name}.",
+                'message' => "Order {$trackingId} has been placed on {$siteObj->name}.",
                 'type' => 'order',
                 'link' => "/orders",
-                'store' => $site->slug
+                'store' => $siteObj->slug
             ]));
 
 
