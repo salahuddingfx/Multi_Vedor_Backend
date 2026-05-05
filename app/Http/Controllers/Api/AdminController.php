@@ -188,14 +188,25 @@ class AdminController extends BaseController
 
         $product->update($validated);
 
-        if ($request->hasFile('images')) {
-            // Delete old images from storage
-            foreach($product->images as $oldImg) {
-                $this->deleteFileFromPath($oldImg->image_path);
-            }
-            $product->images()->delete(); 
+        $product->update($validated);
 
+        // Handle deleted images
+        if ($request->has('deleted_image_ids')) {
+            $deletedIds = is_array($request->deleted_image_ids) ? $request->deleted_image_ids : explode(',', $request->deleted_image_ids);
+            foreach ($product->images()->whereIn('id', $deletedIds)->get() as $oldImg) {
+                $this->deleteFileFromPath($oldImg->image_path);
+                $oldImg->delete();
+            }
+        }
+
+        if ($request->hasFile('images')) {
             $primaryIndex = (int) $request->input('primary_image_index', 0);
+            
+            // If we are adding new images, we might want to unset previous primary images if the new one is primary
+            if ($request->has('primary_image_index')) {
+                $product->images()->update(['is_primary' => false]);
+            }
+
             foreach ($request->file('images') as $index => $image) {
                 $path = $image->store('products', 'public');
                 $imagePath = asset('storage/' . $path);
