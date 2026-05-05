@@ -51,6 +51,11 @@ class StorefrontController extends Controller
                 $query->where('is_featured', true);
             }
 
+            // Always prioritize featured and then popular products for the main listings
+            $query->orderBy('is_featured', 'desc')
+                  ->orderBy('sales_count', 'desc')
+                  ->orderBy('created_at', 'desc');
+
             return $query->paginate(12);
         });
     }

@@ -90,6 +90,8 @@ class OrderController extends BaseController
 
             foreach ($orderItems as $item) {
                 $order->items()->create($item);
+                // Increment product sales count
+                Product::where('id', $item['product_id'])->increment('sales_count', $item['quantity']);
             }
 
             // Notify Admins
