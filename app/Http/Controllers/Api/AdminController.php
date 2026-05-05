@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Contact;
 use App\Models\HeroSlide;
-use App\Models\Page;
 use App\Events\OrderStatusChanged;
 use Illuminate\Support\Facades\Cache;
 
@@ -728,43 +727,6 @@ class AdminController extends BaseController
         return $this->sendResponse($site->settings, 'Site settings updated.');
     }
 
-    // Dynamic Pages
-    public function getPages(Request $request) {
-        $siteId = $request->site_id;
-        $pages = Page::where('site_id', $siteId)->get();
-        return $this->sendResponse($pages, 'Pages retrieved.');
-    }
-
-    public function storePage(Request $request) {
-        $validated = $request->validate([
-            'site_id' => 'required',
-            'title' => 'required',
-            'content' => 'required',
-            'is_active' => 'boolean'
-        ]);
-        $validated['slug'] = Str::slug($request->title);
-        $page = Page::create($validated);
-        return $this->sendResponse($page, 'Page created.');
-    }
-
-    public function updatePage(Request $request, $id) {
-        $page = Page::findOrFail($id);
-        $validated = $request->validate([
-            'title' => 'sometimes|required',
-            'content' => 'sometimes|required',
-            'is_active' => 'sometimes|boolean'
-        ]);
-        if (isset($validated['title'])) {
-            $validated['slug'] = Str::slug($validated['title']);
-        }
-        $page->update($validated);
-        return $this->sendResponse($page, 'Page updated.');
-    }
-
-    public function deletePage($id) {
-        Page::findOrFail($id)->delete();
-        return $this->sendResponse(null, 'Page deleted.');
-    }
 
     public function getReturns()
     {

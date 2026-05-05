@@ -30,8 +30,6 @@ Route::prefix('v1/{site}')->group(function () {
     // Contact
     Route::post('/contact', [ContactController::class, 'store']);
 
-    // Dynamic Pages
-    Route::get('/pages/{slug}', [SiteController::class, 'getPage']);
 
     // Reviews
     Route::get('/reviews', [ReviewController::class, 'index']);
@@ -84,11 +82,6 @@ Route::prefix('admin')->group(function () {
     Route::post('/hero-slides/{id}', [AdminController::class, 'updateHeroSlide']); // Use POST for multipart/form-data update
     Route::delete('/hero-slides/{id}', [AdminController::class, 'deleteHeroSlide']);
     
-    // Dynamic Pages
-    Route::get('/pages', [AdminController::class, 'getPages']);
-    Route::post('/pages', [AdminController::class, 'storePage']);
-    Route::put('/pages/{id}', [AdminController::class, 'updatePage']);
-    Route::delete('/pages/{id}', [AdminController::class, 'deletePage']);
     
     // Site Settings
     Route::get('/sites/{id}/settings', [AdminController::class, 'getSettings']);
