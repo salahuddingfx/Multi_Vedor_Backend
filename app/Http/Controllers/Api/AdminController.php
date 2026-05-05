@@ -188,8 +188,6 @@ class AdminController extends BaseController
 
         $product->update($validated);
 
-        $product->update($validated);
-
         // Handle deleted images
         if ($request->has('deleted_image_ids')) {
             $deletedIds = is_array($request->deleted_image_ids) ? $request->deleted_image_ids : explode(',', $request->deleted_image_ids);
