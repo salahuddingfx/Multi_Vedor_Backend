@@ -56,49 +56,52 @@ class AdminController extends BaseController
 
     public function getStats(Request $request) {
         $siteId = $request->site_id;
+        $cacheKey = "admin_dashboard_stats_{$siteId}";
 
-        // Calculate sales for the last 7 days for the chart efficiently
-        $startDate = now()->subDays(6)->startOfDay();
-        $chartDataRaw = Order::where('site_id', $siteId)
-            ->where('status', '!=', 'cancelled')
-            ->where('created_at', '>=', $startDate)
-            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
-            ->groupBy('date')
-            ->get()
-            ->pluck('total', 'date');
+        $stats = Cache::remember($cacheKey, 60, function() use ($siteId) {
+            // Calculate sales for the last 7 days for the chart efficiently
+            $startDate = now()->subDays(6)->startOfDay();
+            $chartDataRaw = Order::where('site_id', $siteId)
+                ->where('status', '!=', 'cancelled')
+                ->where('created_at', '>=', $startDate)
+                ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+                ->groupBy('date')
+                ->get()
+                ->pluck('total', 'date');
 
-        $chartData = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            $dayName = now()->subDays($i)->format('D');
-            $chartData[] = [
-                'name' => $dayName,
-                'value' => (float) ($chartDataRaw[$date] ?? 0)
-            ];
-        }
-
-        // Sales trend (this week vs last week)
-        $thisWeekSales = Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->where('created_at', '>=', now()->subDays(7))->sum('total_amount');
-        $lastWeekSales = Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->where('created_at', '>=', now()->subDays(14))->where('created_at', '<', now()->subDays(7))->sum('total_amount');
-        $growth = $lastWeekSales > 0 ? (($thisWeekSales - $lastWeekSales) / $lastWeekSales) * 100 : 100;
-
-        $stats = [
-            'totalSales' => (float) Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->sum('total_amount'),
-            'totalOrders' => Order::where('site_id', $siteId)->count(),
-            'activeProducts' => Product::where('site_id', $siteId)->count(),
-            'lowStock' => Product::where('site_id', $siteId)->where('stock', '<', 10)->count(),
-            'lowStockProducts' => Product::where('site_id', $siteId)->where('stock', '<', 10)->with('category')->get(),
-            'recentSales' => Order::where('site_id', $siteId)->latest()->take(5)->get()->map(function($o) {
-                return [
-                    'id' => $o->id,
-                    'date' => $o->created_at->format('d M, Y'),
-                    'amount' => (float)$o->total_amount,
-                    'status' => $o->status
+            $chartData = [];
+            for ($i = 6; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $dayName = now()->subDays($i)->format('D');
+                $chartData[] = [
+                    'name' => $dayName,
+                    'value' => (float) ($chartDataRaw[$date] ?? 0)
                 ];
-            }),
-            'chartData' => $chartData,
-            'growth' => round($growth, 1)
-        ];
+            }
+
+            // Sales trend (this week vs last week)
+            $thisWeekSales = Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->where('created_at', '>=', now()->subDays(7))->sum('total_amount');
+            $lastWeekSales = Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->where('created_at', '>=', now()->subDays(14))->where('created_at', '<', now()->subDays(7))->sum('total_amount');
+            $growth = $lastWeekSales > 0 ? (($thisWeekSales - $lastWeekSales) / $lastWeekSales) * 100 : 100;
+
+            return [
+                'totalSales' => (float) Order::where('site_id', $siteId)->where('status', '!=', 'cancelled')->sum('total_amount'),
+                'totalOrders' => Order::where('site_id', $siteId)->count(),
+                'activeProducts' => Product::where('site_id', $siteId)->count(),
+                'lowStock' => Product::where('site_id', $siteId)->where('stock', '<', 10)->count(),
+                'lowStockProducts' => Product::where('site_id', $siteId)->where('stock', '<', 10)->with('category')->get(),
+                'recentSales' => Order::where('site_id', $siteId)->latest()->take(5)->get()->map(function($o) {
+                    return [
+                        'id' => $o->id,
+                        'date' => $o->created_at->format('d M, Y'),
+                        'amount' => (float)$o->total_amount,
+                        'status' => $o->status
+                    ];
+                }),
+                'chartData' => $chartData,
+                'growth' => round($growth, 1)
+            ];
+        });
 
         return $this->sendResponse($stats, 'Stats retrieved.');
     }
