@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('pages', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('pages');
     }
 
     /**
@@ -21,8 +19,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('pages', function (Blueprint $table) {
-            //
+        Schema::create('pages', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('site_id')->constrained()->onDelete('cascade');
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->longText('content');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
         });
     }
 };
