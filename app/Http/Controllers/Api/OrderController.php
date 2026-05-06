@@ -117,20 +117,27 @@ class OrderController extends BaseController
         });
     }
 
-    public function track($site_slug, $tracking_id)
+    public function track($site_slug, $id_or_phone)
     {
         $site = Site::where('slug', $site_slug)->first();
         if (!$site) return $this->sendError('Site not found.');
 
-        $order = Order::where('site_id', $site->id)
-            ->where('tracking_id', $tracking_id)
-            ->with('items')
-            ->first();
+        $orders = Order::where('site_id', $site->id)
+            ->where(function($query) use ($id_or_phone) {
+                $query->where('tracking_id', $id_or_phone)
+                      ->orWhere('customer_phone', $id_or_phone);
+            })
+            ->with(['items.product.images'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        if (!$order) {
-            return $this->sendError('Order not found.');
+        if ($orders->isEmpty()) {
+            return $this->sendError('No order found with that ID or Phone Number.');
         }
 
-        return $this->sendResponse($order, 'Order status retrieved successfully.');
+        // If only one order is found, return it directly for backward compatibility
+        // but we might want to return a list if the user specifically asked for "how many orders".
+        // Let's return the collection and handle it in the frontend.
+        return $this->sendResponse($orders, 'Orders retrieved successfully.');
     }
 }
