@@ -14,7 +14,14 @@ class ProductController extends BaseController
         $site = Site::where('slug', $site_slug)->first();
         if (!$site) return $this->sendError('Site not found.');
 
-        $query = Product::where('site_id', $site->id)->with(['images', 'category']);
+        $query = Product::where('site_id', $site->id)
+            ->with(['images', 'category', 'variations'])
+            ->withCount(['reviews as reviews_count' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->withAvg(['reviews as average_rating' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating');
 
         if ($request->has('category')) {
             $category = Category::where('site_id', $site->id)->where('slug', $request->category)->first();
@@ -38,7 +45,13 @@ class ProductController extends BaseController
 
         $product = Product::where('site_id', $site->id)
             ->where('slug', $slug)
-            ->with(['images', 'category'])
+            ->with(['images', 'category', 'variations'])
+            ->withCount(['reviews as reviews_count' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->withAvg(['reviews as average_rating' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
             ->first();
 
         if (!$product) {
