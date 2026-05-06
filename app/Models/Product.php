@@ -16,4 +16,6 @@ class Product extends Model
     public function site(): BelongsTo { return $this->belongsTo(Site::class); }
     public function category(): BelongsTo { return $this->belongsTo(Category::class); }
     public function images(): HasMany { return $this->hasMany(ProductImage::class); }
+    public function variations(): HasMany { return $this->hasMany(ProductVariation::class); }
+    public function reviews(): HasMany { return $this->hasMany(Review::class); }
 }
