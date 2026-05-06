@@ -232,30 +232,43 @@ class AdminController extends BaseController
             }
         }
 
-        // Handle Variations Update (smart sync - don't delete what isn't sent)
+        // Handle Variations Update (smart sync)
         if ($request->has('variations')) {
             $variations = is_array($request->variations) ? $request->variations : json_decode($request->variations, true);
             
             if (is_array($variations)) {
-                // Collect IDs of variations still present in the form
-                $keptIds = array_filter(array_column($variations, 'id'));
+                // IDs of variations the client still wants to keep
+                $keptIds = array_values(array_filter(array_map(fn($v) => $v['id'] ?? null, $variations)));
 
-                // Delete only variations that are no longer in the submitted list
-                $product->variations()->whereNotIn('id', $keptIds)->delete();
+                // Delete variations removed by the client
+                if (!empty($keptIds)) {
+                    $product->variations()->whereNotIn('id', $keptIds)->delete();
+                } else {
+                    // No IDs present — all rows are new; don't delete existing ones if user sent non-empty list
+                    // Only delete all if list is completely empty (user removed all)
+                    if (empty($variations)) {
+                        $product->variations()->delete();
+                    }
+                }
 
                 foreach ($variations as $v) {
-                    if (!empty($v['weight']) && isset($v['price'])) {
-                        $product->variations()->updateOrCreate(
-                            ['id' => $v['id'] ?? null],
-                            [
-                                'weight'         => $v['weight'],
-                                'price'          => $v['price'],
-                                'original_price' => $v['original_price'] ?? null,
-                                'stock'          => $v['stock'] ?? 0,
-                                'sku'            => $v['sku'] ?? null,
-                                'product_id'     => $product->id,
-                            ]
-                        );
+                    if (empty($v['weight']) || !isset($v['price'])) continue;
+
+                    $payload = [
+                        'product_id'     => $product->id,
+                        'weight'         => $v['weight'],
+                        'price'          => $v['price'],
+                        'original_price' => !empty($v['original_price']) ? $v['original_price'] : null,
+                        'stock'          => $v['stock'] ?? 0,
+                        'sku'            => !empty($v['sku']) ? $v['sku'] : null,
+                    ];
+
+                    if (!empty($v['id'])) {
+                        // Existing variation — update it
+                        $product->variations()->where('id', $v['id'])->update($payload);
+                    } else {
+                        // New variation — create it
+                        $product->variations()->create($payload);
                     }
                 }
             }
