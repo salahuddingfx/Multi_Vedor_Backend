@@ -95,7 +95,21 @@ class OrderController extends BaseController
             foreach ($orderItems as $item) {
                 // Get current SKU to store in order items
                 $prod = Product::find($item['product_id']);
-                $item['sku'] = $prod ? $prod->sku : '';
+                
+                $variationId = $item['variation_id'] ?? null;
+                $variationInfo = $item['variation_info'] ?? null;
+                $sku = $prod ? $prod->sku : '';
+                
+                if ($variationId && $prod) {
+                    $variation = $prod->variations()->find($variationId);
+                    if ($variation && $variation->sku) {
+                        $sku = $variation->sku;
+                    }
+                }
+
+                $item['sku'] = $sku;
+                $item['variation_id'] = $variationId;
+                $item['variation_info'] = $variationInfo;
                 
                 $order->items()->create($item);
                 // Increment product sales count
