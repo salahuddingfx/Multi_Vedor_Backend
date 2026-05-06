@@ -16,6 +16,7 @@ use App\Models\Contact;
 use App\Models\HeroSlide;
 use App\Events\OrderStatusChanged;
 use Illuminate\Support\Facades\Cache;
+use App\Models\ProductVariation;
 
 class AdminController extends BaseController
 {
@@ -109,7 +110,7 @@ class AdminController extends BaseController
     public function getProducts(Request $request) {
         $siteId = $request->site_id;
         $products = Product::where('site_id', $siteId)
-            ->with(['category', 'site', 'images'])
+            ->with(['category', 'site', 'images', 'variations'])
             ->paginate(20);
         return $this->sendResponse($products, 'Admin products retrieved.');
     }
@@ -148,6 +149,20 @@ class AdminController extends BaseController
                 $product->images()->create([
                     'image_path' => $imagePath,
                     'is_primary' => $index === $primaryIndex
+                ]);
+            }
+        }
+
+        // Handle Variations
+        if ($request->has('variations')) {
+            $variations = is_array($request->variations) ? $request->variations : json_decode($request->variations, true);
+            foreach ($variations as $v) {
+                $product->variations()->create([
+                    'weight' => $v['weight'],
+                    'price' => $v['price'],
+                    'original_price' => $v['original_price'] ?? null,
+                    'stock' => $v['stock'] ?? 0,
+                    'sku' => $v['sku'] ?? null
                 ]);
             }
         }
@@ -214,6 +229,35 @@ class AdminController extends BaseController
                     'image_path' => $imagePath,
                     'is_primary' => $index === $primaryIndex
                 ]);
+            }
+        }
+
+        // Handle Variations Update (smart sync - don't delete what isn't sent)
+        if ($request->has('variations')) {
+            $variations = is_array($request->variations) ? $request->variations : json_decode($request->variations, true);
+            
+            if (is_array($variations)) {
+                // Collect IDs of variations still present in the form
+                $keptIds = array_filter(array_column($variations, 'id'));
+
+                // Delete only variations that are no longer in the submitted list
+                $product->variations()->whereNotIn('id', $keptIds)->delete();
+
+                foreach ($variations as $v) {
+                    if (!empty($v['weight']) && isset($v['price'])) {
+                        $product->variations()->updateOrCreate(
+                            ['id' => $v['id'] ?? null],
+                            [
+                                'weight'         => $v['weight'],
+                                'price'          => $v['price'],
+                                'original_price' => $v['original_price'] ?? null,
+                                'stock'          => $v['stock'] ?? 0,
+                                'sku'            => $v['sku'] ?? null,
+                                'product_id'     => $product->id,
+                            ]
+                        );
+                    }
+                }
             }
         }
 
@@ -343,16 +387,22 @@ class AdminController extends BaseController
     }
 
     public function storeHeroSlide(Request $request) {
-        $validated = $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'site_id' => 'required',
             'product_id' => 'nullable|integer',
             'title' => 'required',
             'subtitle' => 'nullable',
             'badge' => 'nullable',
             'button_text' => 'nullable',
-            'image' => 'required|image|max:2048',
+            'image' => 'required|image|max:5120',
             'order' => 'integer'
         ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        }
+
+        $validated = $validator->validated();
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('slides', 'public');
@@ -366,15 +416,21 @@ class AdminController extends BaseController
 
     public function updateHeroSlide(Request $request, $id) {
         $slide = HeroSlide::findOrFail($id);
-        $validated = $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'product_id' => 'nullable|integer',
             'title' => 'sometimes|required',
             'subtitle' => 'nullable',
             'badge' => 'nullable',
             'button_text' => 'nullable',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
             'order' => 'integer'
         ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
+        }
+
+        $validated = $validator->validated();
 
         if ($request->hasFile('image')) {
             $this->deleteFileFromPath($slide->image_path);
