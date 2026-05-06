@@ -100,11 +100,18 @@ class OrderController extends BaseController
                 $variationInfo = $item['variation_info'] ?? null;
                 $sku = $prod ? $prod->sku : '';
                 
-                if ($variationId && $prod) {
+                if ($variationId && $variationId !== 'base' && $prod) {
                     $variation = $prod->variations()->find($variationId);
-                    if ($variation && $variation->sku) {
-                        $sku = $variation->sku;
+                    if ($variation) {
+                        if ($variation->sku) {
+                            $sku = $variation->sku;
+                        }
+                        // Decrement variation stock
+                        $variation->decrement('stock', $item['quantity']);
                     }
+                } else if ($prod) {
+                    // Decrement base product stock
+                    $prod->decrement('stock', $item['quantity']);
                 }
 
                 $item['sku'] = $sku;
