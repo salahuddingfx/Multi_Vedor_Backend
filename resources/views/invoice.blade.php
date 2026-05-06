@@ -6,10 +6,11 @@
     <title>Invoice #{{ $order->tracking_id }} | {{ $order->site_id == 1 ? 'Acharu' : 'Taja Shutki' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: {{ $order->site_id == 1 ? '#7c2d12' : '#065f46' }}; /* Maroon for Acharu, Green for Taja */
+            --primary-color: {{ $order->site_id == 1 ? '#800000' : '#064e3b' }};
+            --slate-900: #0f172a;
             --slate-800: #1e293b;
             --slate-600: #475569;
             --slate-400: #94a3b8;
@@ -22,293 +23,307 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f8fafc;
-            color: var(--slate-800);
+            background-color: #fff;
+            color: var(--slate-900);
         }
 
         .page-container {
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm;
-            margin: 20px auto;
-            background: white;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 15mm;
+            margin: 0 auto;
             position: relative;
-            overflow: hidden;
-        }
-
-        /* Decorative Background */
-        .page-container::before {
-            content: '';
-            position: absolute;
-            top: -100px;
-            right: -100px;
-            width: 300px;
-            height: 300px;
-            background: var(--primary-color);
-            opacity: 0.03;
-            border-radius: 50%;
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 50px;
-            position: relative;
+            display: table;
+            width: 100%;
+            border-bottom: 8px solid var(--primary-color);
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        .header-left {
+            display: table-cell;
+            vertical-align: bottom;
+        }
+
+        .header-right {
+            display: table-cell;
+            vertical-align: bottom;
+            text-align: right;
         }
 
         .brand h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 38px;
+            font-size: 42px;
+            font-weight: 900;
             margin: 0;
             color: var(--primary-color);
-            letter-spacing: -1px;
+            letter-spacing: -2px;
         }
 
         .brand p {
             margin: 5px 0 0;
-            font-size: 12px;
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 2px;
             color: var(--slate-400);
-            font-weight: 600;
+            font-weight: 700;
         }
 
-        .invoice-label {
-            text-align: right;
-        }
-
-        .invoice-label h2 {
-            font-size: 48px;
-            font-weight: 800;
+        .invoice-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--slate-900);
             margin: 0;
-            color: var(--slate-100);
-            line-height: 1;
-            position: absolute;
-            right: 0;
-            top: -10px;
-            z-index: 0;
         }
 
-        .invoice-label .meta {
-            position: relative;
-            z-index: 1;
-            padding-top: 15px;
+        .invoice-id {
+            display: inline-block;
+            background: var(--slate-100);
+            padding: 6px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            color: var(--primary-color);
+            font-weight: 900;
+            font-size: 16px;
         }
 
-        .meta p {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
+        .info-section {
+            display: table;
+            width: 100%;
+            margin-bottom: 40px;
         }
 
-        .meta span {
-            color: var(--slate-400);
-            font-size: 12px;
+        .recipient-box {
+            display: table-cell;
+            width: 60%;
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #f1f5f9;
         }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            margin-bottom: 60px;
+        .summary-box {
+            display: table-cell;
+            width: 40%;
+            padding: 0 0 0 40px;
+            vertical-align: top;
         }
 
-        .section-title {
+        .section-label {
             font-size: 10px;
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             color: var(--primary-color);
             margin-bottom: 15px;
             display: block;
-            border-bottom: 2px solid var(--slate-100);
+        }
+
+        .recipient-name {
+            font-size: 18px;
+            font-weight: 900;
+            margin: 0 0 5px;
+        }
+
+        .recipient-phone {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--slate-600);
+            margin-bottom: 10px;
+        }
+
+        .recipient-address {
+            font-size: 13px;
+            color: var(--slate-600);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .summary-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--slate-100);
             padding-bottom: 8px;
         }
 
-        .address-block h3 {
-            margin: 0 0 8px;
-            font-size: 18px;
-            font-weight: 600;
+        .summary-label {
+            display: table-cell;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--slate-400);
         }
 
-        .address-block p {
-            margin: 4px 0;
-            font-size: 13px;
-            color: var(--slate-600);
-            line-height: 1.6;
+        .summary-value {
+            display: table-cell;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0 8px;
             margin-bottom: 40px;
         }
 
         th {
             text-align: left;
-            background: var(--slate-100);
-            padding: 15px 20px;
+            padding: 10px 20px;
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: var(--slate-600);
-        }
-
-        td {
-            padding: 20px;
-            border-bottom: 1px solid var(--slate-100);
-            font-size: 14px;
-        }
-
-        .item-info h4 {
-            margin: 0 0 5px;
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .item-info span {
-            font-size: 12px;
             color: var(--slate-400);
         }
 
-        .totals-container {
-            display: flex;
-            justify-content: flex-end;
+        .item-row td {
+            padding: 15px 20px;
+            background: #fff;
+            border: 1px solid var(--slate-100);
+            font-size: 14px;
+        }
+
+        .item-row td:first-child { border-radius: 12px 0 0 12px; border-right: none; }
+        .item-row td:nth-child(2) { border-left: none; border-right: none; text-align: center; }
+        .item-row td:last-child { border-radius: 0 12px 12px 0; border-left: none; text-align: right; font-weight: 900; }
+
+        .item-name { font-weight: 800; font-size: 15px; }
+        .item-meta { font-size: 11px; color: var(--primary-color); font-weight: 700; margin-top: 3px; }
+
+        .totals-section {
+            display: table;
+            width: 100%;
+        }
+
+        .note-box {
+            display: table-cell;
+            width: 55%;
+            background: #fdf2f2;
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px dashed var(--primary-color);
+            vertical-align: top;
+        }
+
+        .totals-wrap {
+            display: table-cell;
+            width: 45%;
+            padding-left: 40px;
         }
 
         .totals-box {
-            width: 320px;
-            background: var(--slate-100);
-            padding: 30px;
-            border-radius: 20px;
+            background: var(--slate-900);
+            padding: 25px;
+            border-radius: 25px;
+            color: #fff;
         }
 
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: var(--slate-600);
+        .bill-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 10px;
+            font-size: 13px;
+            opacity: 0.7;
         }
 
-        .total-row.grand-total {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px dashed var(--slate-400);
-            color: var(--slate-800);
-            font-weight: 800;
-            font-size: 22px;
+        .bill-label { display: table-cell; }
+        .bill-val { display: table-cell; text-align: right; }
+
+        .grand-total-row {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
-        .total-row.grand-total span:last-child {
-            color: var(--primary-color);
+        .grand-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 900;
+            opacity: 0.5;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .grand-price {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -1px;
         }
 
         .footer {
-            margin-top: 80px;
+            margin-top: 60px;
             text-align: center;
             border-top: 1px solid var(--slate-100);
             padding-top: 30px;
         }
 
-        .footer p {
-            font-size: 13px;
-            color: var(--slate-400);
-            margin: 5px 0;
-        }
+        .footer p { font-size: 12px; font-weight: 700; margin: 4px 0; }
+        .footer .credits { font-size: 9px; text-transform: uppercase; color: var(--slate-400); letter-spacing: 1px; margin-top: 15px; }
 
-        .status-badge {
-            display: inline-block;
-            padding: 6px 15px;
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
-            background: {{ $order->payment_status == 'paid' ? '#ecfdf5' : '#fff1f2' }};
-            color: {{ $order->payment_status == 'paid' ? '#059669' : '#e11d48' }};
-        }
-
-        @media print {
-            body { background: white; }
-            .page-container { margin: 0; box-shadow: none; }
-            .no-print { display: none; }
-        }
-
-        .print-btn {
+        .no-print {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 20px;
+            right: 20px;
             background: var(--primary-color);
             color: white;
-            border: none;
-            padding: 15px 30px;
+            padding: 12px 25px;
             border-radius: 50px;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: 'Outfit', sans-serif;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        .print-btn:hover {
-            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
-    <button class="no-print print-btn" onclick="window.print()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        Print Invoice
-    </button>
+    <a href="javascript:window.print()" class="no-print">Print Invoice</a>
 
     <div class="page-container">
         <div class="header">
-            <div class="brand">
-                <h1>{{ $order->site_id == 1 ? 'Acharu' : 'Taja Shutki' }}</h1>
-                <p>Premium Homemade Quality</p>
-            </div>
-            <div class="invoice-label">
-                <h2>INVOICE</h2>
-                <div class="meta">
-                    <p>#{{ $order->tracking_id }}</p>
-                    <span>{{ $order->created_at->format('M d, Y | h:i A') }}</span>
-                    <br>
-                    <div class="status-badge">{{ $order->payment_status }}</div>
+            <div class="header-left">
+                <div class="brand">
+                    <h1>{{ $order->site_id == 1 ? 'ACHARU' : 'TAJA SHUTKI' }}</h1>
+                    <p>Premium Artisanal Quality</p>
                 </div>
+            </div>
+            <div class="header-right">
+                <h2 class="invoice-title">TAX INVOICE</h2>
+                <div class="invoice-id">#{{ $order->tracking_id }}</div>
+                <p style="margin: 8px 0 0; font-size: 12px; color: var(--slate-400); font-weight: 700;">{{ $order->created_at->format('d F, Y') }}</p>
             </div>
         </div>
 
-        <div class="info-grid">
-            <div class="address-block">
-                <span class="section-title">Customer Details</span>
-                <h3>{{ $order->customer_name }}</h3>
-                <p>{{ $order->customer_phone }}</p>
-                <p>{{ $order->customer_address }}</p>
-                <p><strong>Region:</strong> {{ $order->location == 'Cox' ? "Cox's Bazar" : 'Outside District' }}</p>
+        <div class="info-section">
+            <div class="recipient-box">
+                <span class="section-label">Bill To</span>
+                <p class="recipient-name">{{ $order->customer_name }}</p>
+                <p class="recipient-phone">{{ $order->customer_phone }}</p>
+                <p class="recipient-address">{{ $order->customer_address }}, {{ $order->location }}</p>
             </div>
-            <div class="address-block" style="text-align: right;">
-                <span class="section-title">Payment Info</span>
-                <p><strong>Method:</strong> {{ strtoupper($order->payment_method) }}</p>
-                @if($order->transaction_id)
-                    <p><strong>Trx ID:</strong> {{ $order->transaction_id }}</p>
-                @endif
-                @if($order->sender_number)
-                    <p><strong>Sender:</strong> {{ $order->sender_number }}</p>
-                @endif
+            <div class="summary-box">
+                <span class="section-label">Logistics</span>
+                <div class="summary-row">
+                    <span class="summary-label">Status:</span>
+                    <span class="summary-value">{{ $order->status }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Payment:</span>
+                    <span class="summary-value">{{ $order->payment_method }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Weight:</span>
+                    <span class="summary-value">{{ $order->total_weight }} KG</span>
+                </div>
             </div>
         </div>
 
@@ -317,47 +332,60 @@
                 <tr>
                     <th>Item Description</th>
                     <th style="text-align: center;">Qty</th>
-                    <th style="text-align: right;">Rate</th>
                     <th style="text-align: right;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($order->items as $item)
-                <tr>
-                    <td class="item-info">
-                        <h4>{{ $item->name }}</h4>
-                        <span>Weight: {{ $item->weight }}kg</span>
+                <tr class="item-row">
+                    <td>
+                        <div class="item-name">{{ $item->name }}</div>
+                        <div class="item-meta">Rate: ৳{{ number_format($item->price) }}</div>
                     </td>
-                    <td style="text-align: center; font-weight: 600;">{{ $item->quantity }}</td>
-                    <td style="text-align: right; color: var(--slate-600);">৳{{ number_format($item->price, 2) }}</td>
-                    <td style="text-align: right; font-weight: 600;">৳{{ number_format($item->price * $item->quantity, 2) }}</td>
+                    <td>{{ $item->quantity }}</td>
+                    <td>৳{{ number_format($item->price * $item->quantity) }}</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <div class="totals-container">
-            <div class="totals-box">
-                <div class="total-row">
-                    <span>Subtotal</span>
-                    <span>৳{{ number_format($order->subtotal, 2) }}</span>
-                </div>
-                <div class="total-row">
-                    <span>Delivery Charge</span>
-                    <span>৳{{ number_format($order->delivery_charge, 2) }}</span>
-                </div>
-                <div class="total-row grand-total">
-                    <span>Total Amount</span>
-                    <span>৳{{ number_format($order->total_amount, 2) }}</span>
+        <div class="totals-section">
+            <div class="note-box">
+                <h5 style="margin: 0 0 10px; font-size: 11px; font-weight: 900; color: var(--primary-color); text-transform: uppercase;">Customer Note:</h5>
+                <p style="margin: 0; font-size: 11px; color: var(--slate-600); line-height: 1.5; font-weight: 500;">
+                    Please inspect your delivery items immediately. For any issues, contact our support team within 24 hours with this Invoice ID.
+                </p>
+            </div>
+            <div class="totals-wrap">
+                <div class="totals-box">
+                    <div class="bill-row">
+                        <span class="bill-label">Subtotal</span>
+                        <span class="bill-val">৳{{ number_format($order->subtotal) }}</span>
+                    </div>
+                    <div class="bill-row">
+                        <span class="bill-label">Delivery</span>
+                        <span class="bill-val">৳{{ number_format($order->delivery_charge) }}</span>
+                    </div>
+                    @if($order->discount_amount > 0)
+                    <div class="bill-row" style="color: #fb923c; opacity: 1;">
+                        <span class="bill-label">Discount</span>
+                        <span class="bill-val">-৳{{ number_format($order->discount_amount) }}</span>
+                    </div>
+                    @endif
+                    <div class="grand-total-row">
+                        <p class="grand-label">Total Payable Amount</p>
+                        <div class="grand-price">৳{{ number_format($order->total_amount) }}</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="footer">
-            <p>Thank you for choosing {{ $order->site_id == 1 ? 'Acharu' : 'Taja Shutki' }}!</p>
-            <p>For any queries, please contact us with your Tracking ID.</p>
-            <p style="font-size: 10px; margin-top: 20px;">© {{ date('Y') }} Multi-Store Management System. All Rights Reserved.</p>
+            <p>Thank you for your patronage!</p>
+            <p style="text-transform: uppercase; letter-spacing: 1px; font-size: 10px; color: var(--slate-400);">Authentic Flavors • Artisanal Craft • Pure Heritage</p>
+            <div class="credits">Computer Generated Invoice • No Signature Required</div>
         </div>
     </div>
 </body>
 </html>
+
