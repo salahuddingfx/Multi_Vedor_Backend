@@ -347,12 +347,45 @@ class AdminController extends BaseController
 
     public function updateOrderStatus(Request $request, $id) {
         $order = Order::findOrFail($id);
-        $order->update(['status' => $request->status]);
+        $oldStatus = $order->status;
+        $newStatus = $request->status;
+        $order->update(['status' => $newStatus]);
+        
+        // Stock adjustment on cancellation status change
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+            foreach ($order->items as $item) {
+                $prod = Product::find($item->product_id);
+                if ($prod) {
+                    if ($item->variation_id && $item->variation_id !== 'base') {
+                        $variation = $prod->variations()->find($item->variation_id);
+                        if ($variation) {
+                            $variation->increment('stock', $item->quantity);
+                        }
+                    } else {
+                        $prod->increment('stock', $item->quantity);
+                    }
+                }
+            }
+        } else if ($oldStatus === 'cancelled' && $newStatus !== 'cancelled') {
+            foreach ($order->items as $item) {
+                $prod = Product::find($item->product_id);
+                if ($prod) {
+                    if ($item->variation_id && $item->variation_id !== 'base') {
+                        $variation = $prod->variations()->find($item->variation_id);
+                        if ($variation) {
+                            $variation->decrement('stock', $item->quantity);
+                        }
+                    } else {
+                        $prod->decrement('stock', $item->quantity);
+                    }
+                }
+            }
+        }
         
         event(new OrderStatusChanged($order));
         $this->clearStorefrontCache($order->site_id);
         
-        return $this->sendResponse($order, 'Order status updated to ' . $request->status);
+        return $this->sendResponse($order, 'Order status updated to ' . $newStatus);
     }
 
     public function updatePaymentStatus(Request $request, $id) {
