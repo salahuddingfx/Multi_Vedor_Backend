@@ -25,7 +25,7 @@ class CouponController extends Controller
         ]);
 
         $coupon = Coupon::create($validated);
-        return response()->json($coupon, 21);
+        return response()->json($coupon, 201);
     }
 
     public function show(Coupon $coupon)
@@ -50,7 +50,7 @@ class CouponController extends Controller
     public function destroy(Coupon $coupon)
     {
         $coupon->delete();
-        return response()->json(null, 24);
+        return response()->json(null, 204);
     }
 
     public function validateCoupon(Request $request)
@@ -60,11 +60,11 @@ class CouponController extends Controller
         $coupon = Coupon::where('code', $request->code)->first();
 
         if (!$coupon) {
-            return response()->json(['message' => 'Invalid coupon code'], 44);
+            return response()->json(['message' => 'Invalid coupon code'], 404);
         }
-
+        
         if (!$coupon->isValid()) {
-            return response()->json(['message' => 'Coupon has expired or is inactive'], 44);
+            return response()->json(['message' => 'Coupon has expired or is inactive'], 400);
         }
 
         return response()->json([
