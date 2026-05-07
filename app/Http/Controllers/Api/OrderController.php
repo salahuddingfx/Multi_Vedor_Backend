@@ -31,6 +31,8 @@ class OrderController extends BaseController
             'payment_method' => 'required|in:cod,bkash,nagad',
             'transaction_id' => 'nullable|string',
             'sender_number' => 'nullable|string',
+            'coupon_code' => 'nullable|string',
+            'discount_amount' => 'nullable|numeric',
         ]);
 
         return DB::transaction(function () use ($request, $siteObj) {
@@ -65,7 +67,9 @@ class OrderController extends BaseController
                 $deliveryCharge += ($extraUnits * 20);
             }
 
-            $totalAmount = $subtotal + $deliveryCharge;
+            $discount = (float)($request->discount_amount ?? 0);
+            $totalAmount = ($subtotal + $deliveryCharge) - $discount;
+            if ($totalAmount < 0) $totalAmount = 0;
             $prefix = ($siteObj->slug === 'acharu') ? 'ACH' : (($siteObj->slug === 'tajashutki') ? 'TSK' : 'ORD');
             
             // Get first product SKU for ID generation
@@ -90,6 +94,8 @@ class OrderController extends BaseController
                 'payment_method' => $request->payment_method,
                 'transaction_id' => $request->transaction_id,
                 'sender_number' => $request->sender_number,
+                'coupon_code' => $request->coupon_code,
+                'discount_amount' => $discount,
             ]);
 
             foreach ($orderItems as $item) {
