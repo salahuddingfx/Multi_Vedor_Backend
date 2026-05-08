@@ -15,11 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             RateLimiter::for('api', function (object $job) {
-                return Limit::perMinute(60)->by($job->ip() ?? 'unknown');
+                return Limit::perMinute(300)->by($job->ip() ?? 'unknown');
             });
 
             RateLimiter::for('admin', function (object $job) {
-                return Limit::perMinute(30)->by($job->ip() ?? 'unknown');
+                return Limit::perMinute(500)->by($job->ip() ?? 'unknown');
             });
 
             RateLimiter::for('login', function (object $job) {
