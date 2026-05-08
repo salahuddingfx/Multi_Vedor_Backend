@@ -422,6 +422,17 @@ class AdminController extends BaseController
         }
         
         event(new OrderStatusChanged($order));
+
+        // Send status update email to customer
+        if ($order->customer_email) {
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $order->customer_email)
+                    ->notify(new \App\Notifications\OrderStatusUpdated($order));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to send status update email: ' . $e->getMessage());
+            }
+        }
+
         $this->clearStorefrontCache($order->site_id);
         
         return $this->sendResponse($order, 'Order status updated to ' . $newStatus);
@@ -509,8 +520,8 @@ class AdminController extends BaseController
     }
 
     public function generateInvoice($id) {
-        $order = Order::with('items')->findOrFail($id);
-        return view('invoice', compact('order'));
+        $order = Order::with(['items.product', 'site'])->findOrFail($id);
+        return view('pdf.invoice', compact('order'));
     }
 
     // Hero Slides
@@ -703,13 +714,12 @@ class AdminController extends BaseController
 
             // 2. Returns Stats
             $returnsQuery = DB::table('product_returns')
-                ->join('products', 'product_returns.product_id', '=', 'products.id')
-                ->whereBetween('product_returns.created_at', [$startDate, $endDate]);
+                ->whereBetween('return_date', [$startDate, $endDate]);
                 
             if ($siteId) {
-                $returnsQuery->where('products.site_id', $siteId);
+                $returnsQuery->where('site_id', $siteId);
             }
-            $totalReturns = (float)$returnsQuery->sum('product_returns.amount');
+            $totalReturns = (float)$returnsQuery->sum('amount');
 
             // 3. Logistics Loss (Delivery charges of Returned or Cancelled orders)
             $logisticsLossQuery = DB::table('orders')
@@ -799,18 +809,17 @@ class AdminController extends BaseController
             ])->get();
 
             $returnsTimeline = DB::table('product_returns')
-                ->join('products', 'product_returns.product_id', '=', 'products.id')
-                ->whereBetween('product_returns.created_at', [$startDate, $endDate]);
+                ->whereBetween('return_date', [$startDate, $endDate]);
             if ($siteId) {
-                $returnsTimeline->where('products.site_id', $siteId);
+                $returnsTimeline->where('site_id', $siteId);
             }
             $returnsTimeline = $returnsTimeline->select([
                 DB::raw("'return' as type"),
-                'product_returns.id',
-                'products.name as title',
-                'product_returns.amount as value',
-                'product_returns.reason as detail',
-                'product_returns.created_at'
+                'id',
+                'reason as title',
+                'amount as value',
+                'reason as detail',
+                'return_date as created_at'
             ])->get();
 
             $timeline = $ordersTimeline->concat($returnsTimeline)->sortByDesc('created_at')->values();
@@ -898,15 +907,17 @@ class AdminController extends BaseController
             }
         }
 
-        // Record in database (Legacy table)
-        DB::table('product_returns')->insert([
+        // Record in database
+        $productReturn = \App\Models\ProductReturn::create([
+            'site_id' => $product->site_id,
             'product_id' => $request->product_id,
+            'variation_id' => $request->variation_id,
             'quantity' => $request->quantity,
             'amount' => $unitPrice * $request->quantity,
             'order_id' => $request->order_id,
             'reason' => $request->reason,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'return_date' => now(),
+            'type' => $request->type ?? 'return',
         ]);
 
         // Increase stock
