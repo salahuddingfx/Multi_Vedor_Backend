@@ -92,6 +92,7 @@ Route::prefix('admin')->group(function () {
     // Site Settings
     Route::get('/sites/{id}/settings', [AdminController::class, 'getSettings']);
     Route::put('/sites/{id}/settings', [AdminController::class, 'updateSettings']);
+    Route::post('/settings/upload', [AdminController::class, 'uploadSettingsMedia']);
 
     // Contact Messages
     Route::get('/messages', [AdminController::class, 'getMessages']);

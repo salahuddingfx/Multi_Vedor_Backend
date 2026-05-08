@@ -904,4 +904,17 @@ class AdminController extends BaseController
             \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
         }
     }
+
+    public function uploadSettingsMedia(Request $request) {
+        $request->validate([
+            'image' => 'required|image|max:2048'
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('settings', 'public');
+            return $this->sendResponse(['url' => asset('storage/' . $path)], 'Media uploaded.');
+        }
+
+        return $this->sendError('No image uploaded.');
+    }
 }
