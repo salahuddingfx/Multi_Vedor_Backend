@@ -34,4 +34,9 @@ class Coupon extends Model
 
         return true;
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
 }
