@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Notifications\AdminNotification;
+use App\Notifications\CustomerOrderConfirmation;
 use Illuminate\Support\Facades\Notification;
 
 class OrderController extends BaseController
@@ -25,6 +26,7 @@ class OrderController extends BaseController
         $request->validate([
             'customer_name' => 'required|string',
             'customer_phone' => 'required|string',
+            'customer_email' => 'nullable|email',
             'customer_address' => 'required|string',
             'location' => 'required|in:Cox,Outside',
             'items' => 'required|array|min:1',
@@ -152,6 +154,7 @@ class OrderController extends BaseController
                 'tracking_id' => $trackingId,
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
+                'customer_email' => $request->customer_email,
                 'customer_address' => $request->customer_address,
                 'location' => $request->location,
                 'subtotal' => $subtotal,
@@ -171,6 +174,17 @@ class OrderController extends BaseController
                 $order->items()->create($item);
                 // Increment product sales count
                 Product::where('id', $item['product_id'])->increment('sales_count', $item['quantity']);
+            }
+
+            // Send confirmation email to customer
+            if ($request->customer_email) {
+                try {
+                    Notification::route('mail', $request->customer_email)
+                        ->notify(new CustomerOrderConfirmation($order));
+                } catch (\Exception $e) {
+                    // Log but don't fail the order if email fails
+                    \Illuminate\Support\Facades\Log::warning('Failed to send order confirmation email: ' . $e->getMessage());
+                }
             }
 
             // Record coupon usage
