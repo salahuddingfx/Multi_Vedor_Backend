@@ -13,6 +13,7 @@ class Coupon extends Model
         'code',
         'type',
         'value',
+        'site_id',
         'max_uses',
         'per_user_limit',
         'first_order_only',
@@ -57,7 +58,13 @@ class Coupon extends Model
     {
         if (!$this->first_order_only) return true;
 
-        return Order::where('customer_phone', $phone)->doesntExist();
+        $query = Order::where('customer_phone', $phone);
+
+        if ($this->site_id) {
+            $query->where('site_id', $this->site_id);
+        }
+
+        return $query->doesntExist();
     }
 
     public function usageCount(): int
@@ -68,6 +75,11 @@ class Coupon extends Model
     public function userUsageCount(string $phone): int
     {
         return $this->usages()->where('customer_phone', $phone)->count();
+    }
+
+    public function site()
+    {
+        return $this->belongsTo(Site::class);
     }
 
     public function products()

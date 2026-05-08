@@ -13,18 +13,24 @@ class SiteController extends BaseController
 {
     public function init($site_slug)
     {
-        $site = Site::where('slug', $site_slug)->first();
+        $data = Cache::remember("init_{$site_slug}", 3600, function () use ($site_slug) {
+            $site = Site::where('slug', $site_slug)->first();
 
-        if (!$site) {
+            if (!$site) {
+                return null;
+            }
+
+            return [
+                'site' => $site,
+                'hero_slides' => HeroSlide::where('site_id', $site->id)->orderBy('order')->get(),
+                'categories' => Category::where('site_id', $site->id)->get(),
+                'featured_products' => Product::where('site_id', $site->id)->where('is_featured', true)->with(['images', 'category'])->get(),
+            ];
+        });
+
+        if (!$data) {
             return $this->sendError('Site not found.');
         }
-
-        $data = [
-            'site' => $site,
-            'hero_slides' => HeroSlide::where('site_id', $site->id)->orderBy('order')->get(),
-            'categories' => Category::where('site_id', $site->id)->get(),
-            'featured_products' => Product::where('site_id', $site->id)->where('is_featured', true)->with(['images', 'category'])->get(),
-        ];
 
         return $this->sendResponse($data, 'Site initialization data retrieved successfully.');
     }

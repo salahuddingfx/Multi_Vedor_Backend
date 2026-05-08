@@ -34,7 +34,7 @@ class SEOController extends BaseController
         }
 
         // Categories
-        $categories = Category::all();
+        $categories = Category::where('site_id', $site->id)->get();
         foreach ($categories as $category) {
             $urls[] = [
                 'loc' => $baseUrl . '/shop?category=' . urlencode($category->name),

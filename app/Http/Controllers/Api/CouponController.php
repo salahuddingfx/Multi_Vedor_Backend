@@ -9,9 +9,15 @@ use Carbon\Carbon;
 
 class CouponController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Coupon::withCount('usages')->latest()->get());
+        $query = Coupon::withCount('usages')->latest();
+
+        if ($request->site_id) {
+            $query->where('site_id', $request->site_id);
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(Request $request)
@@ -20,6 +26,7 @@ class CouponController extends Controller
             'code' => 'required|unique:coupons',
             'type' => 'required|in:fixed,percentage',
             'value' => 'required|numeric|min:0',
+            'site_id' => 'nullable|exists:sites,id',
             'max_uses' => 'nullable|integer|min:1',
             'per_user_limit' => 'nullable|integer|min:1',
             'first_order_only' => 'boolean',
@@ -49,6 +56,7 @@ class CouponController extends Controller
             'code' => 'required|unique:coupons,code,' . $coupon->id,
             'type' => 'required|in:fixed,percentage',
             'value' => 'required|numeric|min:0',
+            'site_id' => 'nullable|exists:sites,id',
             'max_uses' => 'nullable|integer|min:1',
             'per_user_limit' => 'nullable|integer|min:1',
             'first_order_only' => 'boolean',
@@ -77,7 +85,7 @@ class CouponController extends Controller
         return response()->json(null, 204);
     }
 
-    public function validateCoupon(Request $request)
+    public function validateCoupon(Request $request, $site_slug)
     {
         $request->validate([
             'code' => 'required',
@@ -88,6 +96,15 @@ class CouponController extends Controller
         $coupon = Coupon::where('code', $request->code)->with('products')->first();
 
         if (!$coupon) {
+            return response()->json(['message' => 'Invalid coupon code'], 404);
+        }
+
+        // Scope by site if coupon is restricted to a specific site
+        $site = \App\Models\Site::where('slug', $site_slug)->first();
+        if (!$site) {
+            return response()->json(['message' => 'Site not found'], 404);
+        }
+        if ($coupon->site_id && $coupon->site_id !== $site->id) {
             return response()->json(['message' => 'Invalid coupon code'], 404);
         }
         

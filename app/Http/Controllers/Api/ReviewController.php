@@ -103,7 +103,8 @@ class ReviewController extends BaseController
     // For Admin: Approve/Update a review
     public function updateAdminReview(Request $request, $id)
     {
-        $review = Review::find($id);
+        $siteId = $request->site_id;
+        $review = Review::where('id', $id)->where('site_id', $siteId)->first();
         if (!$review) {
             return $this->sendError('Review not found.');
         }
@@ -113,9 +114,10 @@ class ReviewController extends BaseController
     }
 
     // For Admin: Delete a review
-    public function deleteAdminReview($id)
+    public function deleteAdminReview(Request $request, $id)
     {
-        $review = Review::find($id);
+        $siteId = $request->site_id;
+        $review = Review::where('id', $id)->where('site_id', $siteId)->first();
         if (!$review) {
             return $this->sendError('Review not found.');
         }

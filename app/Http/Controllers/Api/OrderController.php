@@ -111,17 +111,24 @@ class OrderController extends BaseController
             if ($request->coupon_code) {
                 $coupon = Coupon::where('code', $request->coupon_code)->first();
                 if ($coupon && $coupon->isValid()) {
+                    // Check site scoping
+                    $couponOk = true;
+                    if ($coupon->site_id && $coupon->site_id !== $siteObj->id) {
+                        $couponOk = false;
+                    }
                     // Check usage limits before applying
-                    $hasReachedMax = $coupon->hasReachedMaxUses();
-                    $hasReachedUserLimit = $coupon->hasReachedUserLimit($request->customer_phone);
-                    $isFirstOrderEligible = $coupon->isFirstOrderOnlyEligible($request->customer_phone);
+                    if ($couponOk) {
+                        $hasReachedMax = $coupon->hasReachedMaxUses();
+                        $hasReachedUserLimit = $coupon->hasReachedUserLimit($request->customer_phone);
+                        $isFirstOrderEligible = $coupon->isFirstOrderOnlyEligible($request->customer_phone);
 
-                    if (!$hasReachedMax && !$hasReachedUserLimit && $isFirstOrderEligible) {
-                        $appliedCoupon = $coupon;
-                        if ($coupon->type === 'percentage') {
-                            $rawDiscount = ($subtotal * (float)$coupon->value) / 100;
-                        } else {
-                            $rawDiscount = (float)$coupon->value;
+                        if (!$hasReachedMax && !$hasReachedUserLimit && $isFirstOrderEligible) {
+                            $appliedCoupon = $coupon;
+                            if ($coupon->type === 'percentage') {
+                                $rawDiscount = ($subtotal * (float)$coupon->value) / 100;
+                            } else {
+                                $rawDiscount = (float)$coupon->value;
+                            }
                         }
                     }
                 }
