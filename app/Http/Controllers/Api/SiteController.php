@@ -7,6 +7,7 @@ use App\Models\HeroSlide;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SiteController extends BaseController
 {
@@ -28,4 +29,15 @@ class SiteController extends BaseController
         return $this->sendResponse($data, 'Site initialization data retrieved successfully.');
     }
 
+    public function version($site_slug)
+    {
+        $site = Site::where('slug', $site_slug)->first();
+        if (!$site) {
+            return $this->sendError('Site not found.');
+        }
+
+        $version = Cache::get("storefront_version_{$site->id}", 0);
+
+        return response()->json(['version' => $version]);
+    }
 }

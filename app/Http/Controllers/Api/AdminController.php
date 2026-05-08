@@ -996,10 +996,9 @@ class AdminController extends BaseController
 
         Cache::forget("init_{$site->slug}");
         Cache::forget("site_settings_{$siteId}");
-        
-        // Note: For product pagination caches, we might need a more sophisticated approach 
-        // like cache tags if using a driver that supports them (like redis).
-        // Since we are likely using 'file' or 'database', we'll just clear the main ones.
+
+        // Bump version so frontend knows data changed (lightweight version polling)
+        Cache::increment("storefront_version_{$siteId}");
     }
 
     /**

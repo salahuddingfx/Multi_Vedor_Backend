@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\NotificationController;
 Route::prefix('v1/{site}')->group(function () {
     // Initialization
     Route::get('/init', [SiteController::class, 'init']);
+    Route::get('/version', [SiteController::class, 'version']);
 
     // Products
     Route::get('/products', [ProductController::class, 'index']);
