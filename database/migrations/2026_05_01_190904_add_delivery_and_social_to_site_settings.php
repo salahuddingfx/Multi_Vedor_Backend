@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('site_settings', function (Blueprint $table) {
-            //
+            $table->dropColumn(['free_delivery_threshold', 'social_links']);
         });
     }
 };
