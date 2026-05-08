@@ -402,7 +402,7 @@
                     </div>
                     @endif
                     <div class="grand-total-row">
-                        <p class="grand-label">Total Payable Amount</p>
+                        <p class="grand-label">{{ $order->payment_status === 'paid' ? 'Total Paid Amount' : 'Total Payable Amount' }}</p>
                         <div class="grand-price">৳{{ number_format($order->total_amount) }}</div>
                     </div>
                 </div>
