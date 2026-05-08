@@ -848,6 +848,7 @@ class AdminController extends BaseController
             'reason' => 'nullable|string'
         ]);
 
+        $product = Product::findOrFail($request->product_id);
         $previousStock = $product->stock;
         
         // Record in database (Legacy table)
