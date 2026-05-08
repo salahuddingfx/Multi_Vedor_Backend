@@ -21,7 +21,7 @@ return new class extends Migration
         } catch (\Exception $e) {}
 
         try {
-            Schema::table('contact_messages', function (Blueprint $table) {
+            Schema::table('contacts', function (Blueprint $table) {
                 $table->index('created_at');
             });
         } catch (\Exception $e) {}
@@ -35,8 +35,10 @@ return new class extends Migration
         Schema::table('product_returns', function (Blueprint $table) {
             $table->dropIndex(['created_at']);
         });
-        Schema::table('contact_messages', function (Blueprint $table) {
-            $table->dropIndex(['created_at']);
-        });
+        try {
+            Schema::table('contacts', function (Blueprint $table) {
+                $table->dropIndex(['created_at']);
+            });
+        } catch (\Exception $e) {}
     }
 };
