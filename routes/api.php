@@ -37,6 +37,9 @@ Route::prefix('v1/{site}')->group(function () {
 
     // Coupons
     Route::post('/validate-coupon', [CouponController::class, 'validateCoupon']);
+
+    // SEO
+    Route::get('/sitemap', [App\Http\Controllers\Api\SEOController::class, 'generateSitemap']);
 });
 
 /*
