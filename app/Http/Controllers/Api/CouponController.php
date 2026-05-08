@@ -11,7 +11,7 @@ class CouponController extends Controller
 {
     public function index()
     {
-        return response()->json(Coupon::latest()->get());
+        return response()->json(Coupon::withCount('usages')->latest()->get());
     }
 
     public function store(Request $request)
@@ -20,6 +20,9 @@ class CouponController extends Controller
             'code' => 'required|unique:coupons',
             'type' => 'required|in:fixed,percentage',
             'value' => 'required|numeric|min:0',
+            'max_uses' => 'nullable|integer|min:1',
+            'per_user_limit' => 'nullable|integer|min:1',
+            'first_order_only' => 'boolean',
             'expires_at' => 'nullable|date|after:now',
             'is_active' => 'boolean',
             'product_ids' => 'nullable|array',
@@ -46,6 +49,9 @@ class CouponController extends Controller
             'code' => 'required|unique:coupons,code,' . $coupon->id,
             'type' => 'required|in:fixed,percentage',
             'value' => 'required|numeric|min:0',
+            'max_uses' => 'nullable|integer|min:1',
+            'per_user_limit' => 'nullable|integer|min:1',
+            'first_order_only' => 'boolean',
             'expires_at' => 'nullable|date',
             'is_active' => 'boolean',
             'product_ids' => 'nullable|array',
@@ -66,6 +72,7 @@ class CouponController extends Controller
     public function destroy(Coupon $coupon)
     {
         $coupon->products()->detach();
+        $coupon->usages()->delete();
         $coupon->delete();
         return response()->json(null, 204);
     }
@@ -74,7 +81,8 @@ class CouponController extends Controller
     {
         $request->validate([
             'code' => 'required',
-            'items' => 'nullable|array' // array of objects { product_id, quantity }
+            'customer_phone' => 'nullable|string',
+            'items' => 'nullable|array'
         ]);
         
         $coupon = Coupon::where('code', $request->code)->with('products')->first();
@@ -87,12 +95,25 @@ class CouponController extends Controller
             return response()->json(['message' => 'Coupon has expired or is inactive'], 400);
         }
 
+        if ($coupon->hasReachedMaxUses()) {
+            return response()->json(['message' => 'This coupon has reached its usage limit'], 400);
+        }
+
+        if ($request->customer_phone) {
+            if ($coupon->hasReachedUserLimit($request->customer_phone)) {
+                return response()->json(['message' => 'You have already used this coupon'], 400);
+            }
+
+            if (!$coupon->isFirstOrderOnlyEligible($request->customer_phone)) {
+                return response()->json(['message' => 'This coupon is for first-time customers only'], 400);
+            }
+        }
+
         // Check product restrictions
         if ($coupon->products->count() > 0) {
             $cartProductIds = collect($request->items)->pluck('product_id')->toArray();
             $restrictedProductIds = $coupon->products->pluck('id')->toArray();
             
-            // Check if ANY item in the cart is eligible
             $eligibleItems = array_intersect($cartProductIds, $restrictedProductIds);
             
             if (empty($eligibleItems)) {

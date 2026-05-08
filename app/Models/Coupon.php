@@ -13,12 +13,16 @@ class Coupon extends Model
         'code',
         'type',
         'value',
+        'max_uses',
+        'per_user_limit',
+        'first_order_only',
         'is_active',
         'expires_at'
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'first_order_only' => 'boolean',
         'expires_at' => 'datetime'
     ];
 
@@ -35,8 +39,44 @@ class Coupon extends Model
         return true;
     }
 
+    public function hasReachedMaxUses(): bool
+    {
+        if ($this->max_uses === null) return false;
+
+        return $this->usageCount() >= $this->max_uses;
+    }
+
+    public function hasReachedUserLimit(string $phone): bool
+    {
+        if ($this->per_user_limit === null) return false;
+
+        return $this->userUsageCount($phone) >= $this->per_user_limit;
+    }
+
+    public function isFirstOrderOnlyEligible(string $phone): bool
+    {
+        if (!$this->first_order_only) return true;
+
+        return Order::where('customer_phone', $phone)->doesntExist();
+    }
+
+    public function usageCount(): int
+    {
+        return $this->usages()->count();
+    }
+
+    public function userUsageCount(string $phone): int
+    {
+        return $this->usages()->where('customer_phone', $phone)->count();
+    }
+
     public function products()
     {
         return $this->belongsToMany(Product::class);
+    }
+
+    public function usages()
+    {
+        return $this->hasMany(CouponUsage::class);
     }
 }

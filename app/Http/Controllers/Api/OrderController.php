@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Coupon;
+use App\Models\CouponUsage;
 use App\Notifications\AdminNotification;
 use Illuminate\Support\Facades\Notification;
 
@@ -106,13 +107,22 @@ class OrderController extends BaseController
             }
 
             $rawDiscount = 0;
+            $appliedCoupon = null;
             if ($request->coupon_code) {
                 $coupon = Coupon::where('code', $request->coupon_code)->first();
                 if ($coupon && $coupon->isValid()) {
-                    if ($coupon->type === 'percentage') {
-                        $rawDiscount = ($subtotal * (float)$coupon->value) / 100;
-                    } else {
-                        $rawDiscount = (float)$coupon->value;
+                    // Check usage limits before applying
+                    $hasReachedMax = $coupon->hasReachedMaxUses();
+                    $hasReachedUserLimit = $coupon->hasReachedUserLimit($request->customer_phone);
+                    $isFirstOrderEligible = $coupon->isFirstOrderOnlyEligible($request->customer_phone);
+
+                    if (!$hasReachedMax && !$hasReachedUserLimit && $isFirstOrderEligible) {
+                        $appliedCoupon = $coupon;
+                        if ($coupon->type === 'percentage') {
+                            $rawDiscount = ($subtotal * (float)$coupon->value) / 100;
+                        } else {
+                            $rawDiscount = (float)$coupon->value;
+                        }
                     }
                 }
             } else {
@@ -154,6 +164,15 @@ class OrderController extends BaseController
                 $order->items()->create($item);
                 // Increment product sales count
                 Product::where('id', $item['product_id'])->increment('sales_count', $item['quantity']);
+            }
+
+            // Record coupon usage
+            if ($appliedCoupon) {
+                CouponUsage::create([
+                    'coupon_id' => $appliedCoupon->id,
+                    'customer_phone' => $request->customer_phone,
+                    'order_id' => $order->id
+                ]);
             }
 
             // Notify Admins

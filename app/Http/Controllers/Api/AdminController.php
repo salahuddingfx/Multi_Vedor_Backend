@@ -18,6 +18,7 @@ use App\Events\OrderStatusChanged;
 use Illuminate\Support\Facades\Cache;
 use App\Models\ProductVariation;
 use App\Models\InventoryLog;
+use App\Models\CouponUsage;
 
 class AdminController extends BaseController
 {
@@ -384,6 +385,9 @@ class AdminController extends BaseController
         $restorativeStatuses = ['cancelled', 'returned'];
         
         if (in_array($newStatus, $restorativeStatuses) && !in_array($oldStatus, $restorativeStatuses)) {
+            // Remove coupon usage record so the coupon slot is freed
+            CouponUsage::where('order_id', $order->id)->delete();
+
             // Moving TO a restorative status: Increase stock, Decrease sales count
             foreach ($order->items as $item) {
                 $prod = Product::find($item->product_id);
