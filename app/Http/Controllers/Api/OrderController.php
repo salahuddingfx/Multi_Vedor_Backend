@@ -87,13 +87,21 @@ class OrderController extends BaseController
             }
 
             // Delivery Charge Logic (Use totalWeight calculated from variations)
-            $baseCharge = ($request->location === 'Cox') ? 70 : 120;
-            $deliveryCharge = $baseCharge;
+            $settings = $siteObj->settings ?? [];
+            $insideCity = (float)($settings['delivery_inside'] ?? 70);
+            $outsideCity = (float)($settings['delivery_outside'] ?? 120);
+            $weightCharge = (float)($settings['delivery_per_kg'] ?? 10);
+            $freeThreshold = (float)($settings['free_delivery_threshold'] ?? 2500);
 
-            if ($totalWeight > 1.0) {
-                $extraWeight = $totalWeight - 1.0;
-                $extraUnits = ceil($extraWeight / 0.5);
-                $deliveryCharge += ($extraUnits * 20);
+            if ($subtotal >= $freeThreshold) {
+                $deliveryCharge = 0;
+            } else {
+                $deliveryCharge = ($request->location === 'Cox') ? $insideCity : $outsideCity;
+                if ($totalWeight > 0.5) {
+                    $extraWeight = $totalWeight - 0.5;
+                    $extraUnits = (int)ceil($extraWeight / 0.5);
+                    $deliveryCharge += ($extraUnits * $weightCharge);
+                }
             }
 
             $discount = (float)($request->discount_amount ?? 0);
