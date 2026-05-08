@@ -351,8 +351,11 @@ class AdminController extends BaseController
         $newStatus = $request->status;
         $order->update(['status' => $newStatus]);
         
-        // Stock adjustment on cancellation status change
-        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+        // Stock & Sales Count adjustment on cancellation/return status change
+        $restorativeStatuses = ['cancelled', 'returned'];
+        
+        if (in_array($newStatus, $restorativeStatuses) && !in_array($oldStatus, $restorativeStatuses)) {
+            // Moving TO a restorative status: Increase stock, Decrease sales count
             foreach ($order->items as $item) {
                 $prod = Product::find($item->product_id);
                 if ($prod) {
@@ -364,9 +367,11 @@ class AdminController extends BaseController
                     } else {
                         $prod->increment('stock', $item->quantity);
                     }
+                    $prod->decrement('sales_count', $item->quantity);
                 }
             }
-        } else if ($oldStatus === 'cancelled' && $newStatus !== 'cancelled') {
+        } else if (!in_array($newStatus, $restorativeStatuses) && in_array($oldStatus, $restorativeStatuses)) {
+            // Moving FROM a restorative status: Decrease stock, Increase sales count
             foreach ($order->items as $item) {
                 $prod = Product::find($item->product_id);
                 if ($prod) {
@@ -378,6 +383,7 @@ class AdminController extends BaseController
                     } else {
                         $prod->decrement('stock', $item->quantity);
                     }
+                    $prod->increment('sales_count', $item->quantity);
                 }
             }
         }
@@ -411,8 +417,28 @@ class AdminController extends BaseController
 
     public function deleteOrder($id) {
         $order = Order::findOrFail($id);
+        
+        // If order is active (not cancelled/returned), restore stock on delete
+        $restorativeStatuses = ['cancelled', 'returned'];
+        if (!in_array($order->status, $restorativeStatuses)) {
+            foreach ($order->items as $item) {
+                $prod = Product::find($item->product_id);
+                if ($prod) {
+                    if ($item->variation_id && $item->variation_id !== 'base') {
+                        $variation = $prod->variations()->find($item->variation_id);
+                        if ($variation) {
+                            $variation->increment('stock', $item->quantity);
+                        }
+                    } else {
+                        $prod->increment('stock', $item->quantity);
+                    }
+                    $prod->decrement('sales_count', $item->quantity);
+                }
+            }
+        }
+
         $order->delete();
-        return $this->sendResponse(null, 'Order deleted successfully.');
+        return $this->sendResponse(null, 'Order deleted successfully and stock restored.');
     }
 
     // User Management (Admins)
