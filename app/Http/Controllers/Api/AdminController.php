@@ -213,7 +213,20 @@ class AdminController extends BaseController
             $validated['slug'] = $slug;
         }
 
+        $previousStock = $product->stock;
         $product->update($validated);
+        
+        if (isset($validated['stock']) && $validated['stock'] != $previousStock) {
+            InventoryLog::create([
+                'product_id' => $product->id,
+                'user_id' => Auth::id(),
+                'type' => $validated['stock'] > $previousStock ? 'shipment' : 'adjustment',
+                'quantity' => $validated['stock'] - $previousStock,
+                'previous_stock' => $previousStock,
+                'new_stock' => $validated['stock'],
+                'note' => $request->note ?? 'Stock updated via admin panel'
+            ]);
+        }
 
         // Handle deleted images
         if ($request->has('deleted_image_ids')) {
@@ -835,9 +848,9 @@ class AdminController extends BaseController
             'reason' => 'nullable|string'
         ]);
 
-        $product = Product::findOrFail($request->product_id);
+        $previousStock = $product->stock;
         
-        // Record in database
+        // Record in database (Legacy table)
         DB::table('product_returns')->insert([
             'product_id' => $request->product_id,
             'quantity' => $request->quantity,
@@ -850,6 +863,17 @@ class AdminController extends BaseController
 
         // Increase stock
         $product->increment('stock', $request->quantity);
+
+        // Record in Inventory Logs (New unified system)
+        InventoryLog::create([
+            'product_id' => $product->id,
+            'user_id' => Auth::id(),
+            'type' => 'return',
+            'quantity' => $request->quantity,
+            'previous_stock' => $previousStock,
+            'new_stock' => $product->fresh()->stock,
+            'note' => $request->reason ?? 'Product returned'
+        ]);
         
         return response()->json([
             'message' => 'Return recorded and stock updated.',
@@ -876,13 +900,28 @@ class AdminController extends BaseController
     public function getReturns(Request $request)
     {
         $request->validate(['site_id' => 'required|exists:sites,id']);
-        $returns = DB::table('product_returns')
-            ->join('products', 'product_returns.product_id', '=', 'products.id')
-            ->where('products.site_id', $request->site_id)
-            ->select('product_returns.*', 'products.name as product_name')
-            ->latest('product_returns.created_at')
-            ->get();
-        return $this->sendResponse($returns, 'Returns retrieved successfully.');
+        
+        $logs = InventoryLog::with('product')
+            ->whereHas('product', function($q) use ($request) {
+                $q->where('site_id', $request->site_id);
+            })
+            ->latest()
+            ->get()
+            ->map(function($log) {
+                return [
+                    'id' => $log->id,
+                    'product_id' => $log->product_id,
+                    'product_name' => $log->product->name,
+                    'type' => $log->type,
+                    'quantity' => $log->quantity,
+                    'previous_stock' => $log->previous_stock,
+                    'new_stock' => $log->new_stock,
+                    'reason' => $log->note, // Map note to reason for frontend compatibility
+                    'created_at' => $log->created_at
+                ];
+            });
+
+        return $this->sendResponse($logs, 'Inventory logs retrieved successfully.');
     }
 
     public function getCustomers(Request $request) {
