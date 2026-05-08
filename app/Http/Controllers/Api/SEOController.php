@@ -45,7 +45,7 @@ class SEOController extends BaseController
         }
 
         // Products
-        $products = Product::where('site_id', $site->id)->where('status', 'active')->get();
+        $products = Product::where('site_id', $site->id)->get();
         foreach ($products as $product) {
             $urls[] = [
                 'loc' => $baseUrl . '/product/' . $product->slug,
