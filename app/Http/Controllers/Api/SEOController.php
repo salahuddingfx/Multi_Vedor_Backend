@@ -10,8 +10,9 @@ use Illuminate\Support\Facades\Response;
 
 class SEOController extends BaseController
 {
-    public function generateSitemap($site_slug)
+    public function generateSitemap($site)
     {
+        $site_slug = $site;
         $site = Site::where('slug', $site_slug)->first();
         if (!$site) {
             return response()->json(['message' => 'Site not found'], 404);
