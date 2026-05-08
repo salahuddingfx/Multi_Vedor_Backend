@@ -10,7 +10,7 @@ class Product extends Model
 {
     protected $fillable = [
         'site_id', 'category_id', 'name', 'name_bn', 'sku', 'slug', 'description', 'description_bn',
-        'price', 'original_price', 'discount_percentage', 'weight', 'stock', 'is_featured'
+        'price', 'original_price', 'discount_percentage', 'weight', 'stock', 'is_featured', 'sales_count'
     ];
 
     public function site(): BelongsTo { return $this->belongsTo(Site::class); }
