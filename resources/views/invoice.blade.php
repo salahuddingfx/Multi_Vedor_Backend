@@ -283,12 +283,35 @@
             letter-spacing: 1px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
+
+        /* Paid Stamp Styles */
+        .paid-stamp {
+            position: absolute;
+            top: 250px;
+            right: 15mm;
+            border: 6px double #15803d;
+            border-radius: 12px;
+            color: #15803d;
+            font-size: 40px;
+            font-weight: 900;
+            padding: 5px 25px;
+            transform: rotate(-15deg);
+            opacity: 0.2;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            user-select: none;
+            pointer-events: none;
+            z-index: 0;
+        }
     </style>
 </head>
 <body>
     <a href="javascript:window.print()" class="no-print">Print Invoice</a>
 
     <div class="page-container">
+        @if($order->payment_status === 'paid')
+        <div class="paid-stamp">PAID</div>
+        @endif
         <div class="header">
             <div class="header-left">
                 <div class="brand">
@@ -319,6 +342,12 @@
                 <div class="summary-row">
                     <span class="summary-label">Payment:</span>
                     <span class="summary-value">{{ $order->payment_method }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Payment Status:</span>
+                    <span class="summary-value" style="color: {{ $order->payment_status === 'paid' ? '#15803d' : '#b45309' }}">
+                        {{ strtoupper($order->payment_status) }}
+                    </span>
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Weight:</span>
