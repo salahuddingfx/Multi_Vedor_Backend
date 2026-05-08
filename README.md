@@ -52,13 +52,20 @@ graph LR
 - **Data Integrity**: Foreign key constraints with cascading deletes across vendor scopes.
 
 ## 📡 Integrated With
-- 🖥️ **[Nexus Admin Dashboard](https://github.com/salahuddingfx/Multi-Vendor-Admin)**
+- 🖥️ **[Nexus Admin Dashboard](https://github.com/salahuddingfx/Multi_Vendor_Admin-Panel)**
 - 🛍️ **[Acharu Boutique](https://github.com/salahuddingfx/Acharu)**
 - 🐟 **[TajaShutki Store](https://github.com/salahuddingfx/TajaShutki)**
 
 ---
 
+## 📜 License
+This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
+
+---
+
 <p align="center">
+  <img src="https://img.shields.io/badge/License-Apache_2.0-maroon?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Build-Stable-emerald?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Tests-Passing-blue?style=for-the-badge" />
 </p>
+
