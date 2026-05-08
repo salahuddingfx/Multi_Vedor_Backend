@@ -55,6 +55,7 @@ class AdminController extends BaseController
     }
 
     public function getStats(Request $request) {
+        $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
         $cacheKey = "admin_dashboard_stats_{$siteId}";
 
@@ -108,6 +109,7 @@ class AdminController extends BaseController
 
     // Product CRUD
     public function getProducts(Request $request) {
+        $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
         $products = Product::where('site_id', $siteId)
             ->with(['category', 'site', 'images', 'variations'])
@@ -138,7 +140,12 @@ class AdminController extends BaseController
 
         $validated = $validator->validated();
         
-        $validated['slug'] = Str::slug($request->name);
+        $slug = Str::slug($request->name);
+        $existingSlug = Product::where('site_id', $validated['site_id'])->where('slug', $slug)->exists();
+        if ($existingSlug) {
+            $slug = $slug . '-' . time();
+        }
+        $validated['slug'] = $slug;
         $product = Product::create($validated);
         
         if ($request->hasFile('images')) {
@@ -197,7 +204,12 @@ class AdminController extends BaseController
         $validated = $validator->validated();
 
         if (isset($validated['name'])) {
-            $validated['slug'] = Str::slug($validated['name']);
+            $slug = Str::slug($validated['name']);
+            $existingSlug = Product::where('site_id', $product->site_id)->where('slug', $slug)->where('id', '!=', $id)->exists();
+            if ($existingSlug) {
+                $slug = $slug . '-' . time();
+            }
+            $validated['slug'] = $slug;
         }
 
         $product->update($validated);
@@ -337,6 +349,7 @@ class AdminController extends BaseController
 
     // Order Management
     public function getOrders(Request $request) {
+        $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
         $orders = Order::where('site_id', $siteId)
             ->with(['items'])
@@ -453,6 +466,7 @@ class AdminController extends BaseController
 
     // Hero Slides
     public function getHeroSlides(Request $request) {
+        $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
         $slides = HeroSlide::where('site_id', $siteId)->orderBy('order')->get();
         return $this->sendResponse($slides, 'Hero slides retrieved.');
@@ -578,6 +592,7 @@ class AdminController extends BaseController
 
     // Contact Messages
     public function getMessages(Request $request) {
+        $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
         $messages = Contact::where('site_id', $siteId)->latest()->paginate(20);
         return $this->sendResponse($messages, 'Contact messages retrieved.');
@@ -591,6 +606,7 @@ class AdminController extends BaseController
 
     public function getSalesStats(Request $request)
     {
+        $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->query('site_id');
         $range = $request->query('range', 'monthly');
         $customStart = $request->query('start_date');
@@ -832,11 +848,11 @@ class AdminController extends BaseController
         ]);
 
         // Increase stock
-        $product->increment('stock_quantity', $request->quantity);
+        $product->increment('stock', $request->quantity);
         
         return response()->json([
             'message' => 'Return recorded and stock updated.',
-            'new_stock' => $product->stock_quantity
+            'new_stock' => $product->stock
         ]);
     }
 
@@ -856,13 +872,15 @@ class AdminController extends BaseController
     }
 
 
-    public function getReturns()
+    public function getReturns(Request $request)
     {
-        $returns = DB::table('product_returns')->latest()->get();
+        $request->validate(['site_id' => 'required|exists:sites,id']);
+        $returns = DB::table('product_returns')->where('site_id', $request->site_id)->latest()->get();
         return $this->sendResponse($returns, 'Returns retrieved successfully.');
     }
 
     public function getCustomers(Request $request) {
+        $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
         $customers = Order::where('site_id', $siteId)
             ->select('customer_name', 'customer_phone', 'customer_address', 'location')
