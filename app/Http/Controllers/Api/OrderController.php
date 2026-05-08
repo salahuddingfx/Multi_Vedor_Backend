@@ -54,6 +54,8 @@ class OrderController extends BaseController
                     'price' => $product->price,
                     'quantity' => $item['quantity'],
                     'weight' => $product->weight,
+                    'variation_id' => $item['variation_id'] ?? null,
+                    'variation_info' => $item['variation_info'] ?? null,
                 ];
             }
 
