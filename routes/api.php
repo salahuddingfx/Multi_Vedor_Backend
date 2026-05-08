@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\NotificationController;
 | API v1 - Storefront Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('v1/{site}')->group(function () {
+Route::prefix('v1/{site}')->middleware('throttle:api')->group(function () {
     // Initialization
     Route::get('/init', [SiteController::class, 'init']);
     Route::get('/version', [SiteController::class, 'version']);
@@ -25,12 +25,11 @@ Route::prefix('v1/{site}')->group(function () {
     Route::get('/products/{slug}', [ProductController::class, 'show']);
 
     // Orders
-    Route::post('/orders', [OrderController::class, 'store']);
+    Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:orders');
     Route::get('/orders/track/{tracking_id}', [OrderController::class, 'track']);
     
     // Contact
     Route::post('/contact', [ContactController::class, 'store']);
-
 
     // Reviews
     Route::get('/reviews', [ReviewController::class, 'index']);
@@ -51,9 +50,9 @@ Route::prefix('v1/{site}')->group(function () {
 | Admin API - Management Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('throttle:admin')->group(function () {
     // Public Admin Routes
-    Route::post('/login', [AdminController::class, 'login']);
+    Route::post('/login', [AdminController::class, 'login'])->middleware('throttle:login');
     
     // Protected Admin Routes
     Route::middleware('auth:sanctum')->group(function () {
