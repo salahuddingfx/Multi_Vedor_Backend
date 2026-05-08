@@ -42,24 +42,51 @@ class OrderController extends BaseController
 
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
-                $itemPrice = $product->price * $item['quantity'];
-                $itemWeight = $product->weight * $item['quantity'];
+                
+                $price = (float)$product->price;
+                $weight = (float)($product->weight ?? 0);
+                $sku = $product->sku;
+                $variationId = $item['variation_id'] ?? null;
+                $variationInfo = $item['variation_info'] ?? null;
 
-                $subtotal += $itemPrice;
+                // Handle variation-specific price/weight/SKU
+                if ($variationId && $variationId !== 'base') {
+                    $variation = $product->variations()->find($variationId);
+                    if ($variation) {
+                        $price = (float)$variation->price;
+                        $weight = (float)$variation->weight;
+                        if ($variation->sku) $sku = $variation->sku;
+                        
+                        // Decrement variation stock
+                        $variation->decrement('stock', $item['quantity']);
+                    } else {
+                        // Fallback: Decrement product stock if variation not found but ID was passed
+                        $product->decrement('stock', $item['quantity']);
+                    }
+                } else {
+                    // Decrement base product stock
+                    $product->decrement('stock', $item['quantity']);
+                }
+
+                $itemSubtotal = $price * $item['quantity'];
+                $itemWeight = $weight * $item['quantity'];
+
+                $subtotal += $itemSubtotal;
                 $totalWeight += $itemWeight;
 
                 $orderItems[] = [
                     'product_id' => $product->id,
                     'name' => $product->name,
-                    'price' => $product->price,
+                    'price' => $price,
                     'quantity' => $item['quantity'],
-                    'weight' => $product->weight,
-                    'variation_id' => $item['variation_id'] ?? null,
-                    'variation_info' => $item['variation_info'] ?? null,
+                    'weight' => $weight,
+                    'sku' => $sku,
+                    'variation_id' => $variationId,
+                    'variation_info' => $variationInfo,
                 ];
             }
 
-            // Delivery Charge Logic
+            // Delivery Charge Logic (Use totalWeight calculated from variations)
             $baseCharge = ($request->location === 'Cox') ? 70 : 120;
             $deliveryCharge = $baseCharge;
 
@@ -72,12 +99,9 @@ class OrderController extends BaseController
             $discount = (float)($request->discount_amount ?? 0);
             $totalAmount = ($subtotal + $deliveryCharge) - $discount;
             if ($totalAmount < 0) $totalAmount = 0;
+            
             $prefix = ($siteObj->slug === 'acharu') ? 'ACH' : (($siteObj->slug === 'tajashutki') ? 'TSK' : 'ORD');
-            
-            // Get first product SKU for ID generation
-            $firstProduct = Product::find($request->items[0]['product_id']);
-            $skuPart = $firstProduct ? strtoupper(substr($firstProduct->sku, 0, 3)) : 'X';
-            
+            $skuPart = strtoupper(substr($orderItems[0]['sku'], 0, 3)) ?: 'X';
             $trackingId = $prefix . '-' . date('y') . $skuPart . '-' . strtoupper(Str::random(4));
 
             $order = Order::create([
@@ -101,31 +125,6 @@ class OrderController extends BaseController
             ]);
 
             foreach ($orderItems as $item) {
-                // Get current SKU to store in order items
-                $prod = Product::find($item['product_id']);
-                
-                $variationId = $item['variation_id'] ?? null;
-                $variationInfo = $item['variation_info'] ?? null;
-                $sku = $prod ? $prod->sku : '';
-                
-                if ($variationId && $variationId !== 'base' && $prod) {
-                    $variation = $prod->variations()->find($variationId);
-                    if ($variation) {
-                        if ($variation->sku) {
-                            $sku = $variation->sku;
-                        }
-                        // Decrement variation stock
-                        $variation->decrement('stock', $item['quantity']);
-                    }
-                } else if ($prod) {
-                    // Decrement base product stock
-                    $prod->decrement('stock', $item['quantity']);
-                }
-
-                $item['sku'] = $sku;
-                $item['variation_id'] = $variationId;
-                $item['variation_info'] = $variationInfo;
-                
                 $order->items()->create($item);
                 // Increment product sales count
                 Product::where('id', $item['product_id'])->increment('sales_count', $item['quantity']);
