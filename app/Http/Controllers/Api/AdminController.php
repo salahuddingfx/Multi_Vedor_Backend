@@ -862,6 +862,20 @@ class AdminController extends BaseController
         return $this->sendResponse($returns, 'Returns retrieved successfully.');
     }
 
+    public function getCustomers(Request $request) {
+        $siteId = $request->site_id;
+        $customers = Order::where('site_id', $siteId)
+            ->select('customer_name', 'customer_phone', 'customer_address', 'location')
+            ->selectRaw('COUNT(*) as total_orders')
+            ->selectRaw('SUM(total_amount) as total_spent')
+            ->selectRaw('MAX(created_at) as last_order_date')
+            ->groupBy('customer_phone', 'customer_name', 'customer_address', 'location')
+            ->orderBy('total_spent', 'desc')
+            ->get();
+            
+        return $this->sendResponse($customers, 'Customer data retrieved.');
+    }
+
     /**
      * Clear all storefront-related caches for a specific site.
      */
