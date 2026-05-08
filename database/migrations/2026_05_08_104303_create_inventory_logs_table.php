@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('inventory_logs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('type'); // shipment, adjustment, return, sale
+            $table->integer('quantity'); // change amount
+            $table->integer('previous_stock');
+            $table->integer('new_stock');
+            $table->text('note')->nullable();
             $table->timestamps();
         });
     }
