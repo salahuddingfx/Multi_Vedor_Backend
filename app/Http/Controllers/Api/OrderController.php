@@ -105,21 +105,23 @@ class OrderController extends BaseController
                 }
             }
 
-            $discount = 0;
+            $rawDiscount = 0;
             if ($request->coupon_code) {
                 $coupon = Coupon::where('code', $request->coupon_code)->first();
                 if ($coupon && $coupon->isValid()) {
                     if ($coupon->type === 'percentage') {
-                        $discount = ($subtotal * (float)$coupon->value) / 100;
+                        $rawDiscount = ($subtotal * (float)$coupon->value) / 100;
                     } else {
-                        $discount = (float)$coupon->value;
+                        $rawDiscount = (float)$coupon->value;
                     }
                 }
             } else {
-                // If no coupon code but discount was passed (emergency fallback or manual adjustment)
-                // In production, we should probably only allow discount via coupon_code
-                $discount = (float)($request->discount_amount ?? 0);
+                $rawDiscount = (float)($request->discount_amount ?? 0);
             }
+
+            // Cap discount at subtotal + delivery charge
+            $maxPossibleDiscount = $subtotal + $deliveryCharge;
+            $discount = min($rawDiscount, $maxPossibleDiscount);
 
             $totalAmount = ($subtotal + $deliveryCharge) - $discount;
             if ($totalAmount < 0) $totalAmount = 0;

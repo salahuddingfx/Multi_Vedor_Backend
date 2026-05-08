@@ -686,10 +686,10 @@ class AdminController extends BaseController
             }
 
             $baseStats = $statsQuery->select([
-                // Realized Revenue: Only Delivered orders, subtracting discounts
-                DB::raw("SUM(CASE WHEN status = 'delivered' THEN (subtotal - discount_amount) ELSE 0 END) as realized_revenue"),
-                // Total Value: All non-cancelled orders, subtracting discounts
-                DB::raw("SUM(CASE WHEN status != 'cancelled' THEN (subtotal - discount_amount) ELSE 0 END) as total_product_price"),
+                // Realized Revenue: Only Delivered orders, subtracting discounts (capped at subtotal)
+                DB::raw("SUM(CASE WHEN status = 'delivered' THEN (subtotal - LEAST(subtotal, discount_amount)) ELSE 0 END) as realized_revenue"),
+                // Total Value: All non-cancelled orders, subtracting discounts (capped at subtotal)
+                DB::raw("SUM(CASE WHEN status != 'cancelled' THEN (subtotal - LEAST(subtotal, discount_amount)) ELSE 0 END) as total_product_price"),
                 DB::raw('SUM(delivery_charge) as total_delivery_charge'),
                 DB::raw('COUNT(*) as total_orders'),
                 DB::raw('COUNT(DISTINCT customer_phone) as total_customers')
