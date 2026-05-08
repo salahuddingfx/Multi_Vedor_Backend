@@ -953,7 +953,7 @@ class AdminController extends BaseController
                 return [
                     'id' => $log->id,
                     'product_id' => $log->product_id,
-                    'product_name' => $log->product->name,
+                    'product_name' => $log->product ? $log->product->name : 'Deleted Product',
                     'type' => $log->type,
                     'quantity' => $log->quantity,
                     'previous_stock' => $log->previous_stock,
