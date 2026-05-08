@@ -53,4 +53,27 @@ class NotificationController extends Controller
 
         return response()->json(['message' => 'Notification deleted']);
     }
+
+    public function subscribePush(Request $request)
+    {
+        $request->validate([
+            'site_id' => 'required|exists:sites,id',
+            'endpoint' => 'required|string',
+            'keys.p256dh' => 'required|string',
+            'keys.auth' => 'required|string',
+        ]);
+
+        \DB::table('push_subscriptions')->updateOrInsert(
+            ['endpoint' => $request->endpoint],
+            [
+                'site_id' => $request->site_id,
+                'public_key' => $request->keys['p256dh'],
+                'auth_token' => $request->keys['auth'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        return response()->json(['message' => 'Subscribed successfully']);
+    }
 }

@@ -40,6 +40,9 @@ Route::prefix('v1/{site}')->group(function () {
 
     // SEO
     Route::get('/sitemap', [App\Http\Controllers\Api\SEOController::class, 'generateSitemap']);
+
+    // Push Notifications
+    Route::post('/push-subscribe', [NotificationController::class, 'subscribePush']);
 });
 
 /*
