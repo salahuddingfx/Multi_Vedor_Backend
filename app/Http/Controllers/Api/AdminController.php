@@ -17,6 +17,7 @@ use App\Models\HeroSlide;
 use App\Events\OrderStatusChanged;
 use Illuminate\Support\Facades\Cache;
 use App\Models\ProductVariation;
+use App\Models\InventoryLog;
 
 class AdminController extends BaseController
 {
