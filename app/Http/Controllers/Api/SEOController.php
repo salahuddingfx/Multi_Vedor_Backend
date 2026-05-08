@@ -18,7 +18,7 @@ class SEOController extends BaseController
             return response()->json(['message' => 'Site not found'], 404);
         }
 
-        $baseUrl = $site_slug === 'acharu' ? 'https://acharu.com.bd' : 'https://tajashutki.com.bd';
+        $baseUrl = $site_slug === 'acharu' ? 'https://acharu.com' : 'https://tajashutki.com';
         
         $urls = [];
 
