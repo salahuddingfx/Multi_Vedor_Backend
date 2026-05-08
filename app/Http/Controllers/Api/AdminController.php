@@ -875,7 +875,12 @@ class AdminController extends BaseController
     public function getReturns(Request $request)
     {
         $request->validate(['site_id' => 'required|exists:sites,id']);
-        $returns = DB::table('product_returns')->where('site_id', $request->site_id)->latest()->get();
+        $returns = DB::table('product_returns')
+            ->join('products', 'product_returns.product_id', '=', 'products.id')
+            ->where('products.site_id', $request->site_id)
+            ->select('product_returns.*', 'products.name as product_name')
+            ->latest('product_returns.created_at')
+            ->get();
         return $this->sendResponse($returns, 'Returns retrieved successfully.');
     }
 
