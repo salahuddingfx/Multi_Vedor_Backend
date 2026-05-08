@@ -7,35 +7,44 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AdminNotification extends Notification
+class AdminNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     protected $data;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct($data)
     {
         $this->data = $data;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        $channels = ['database'];
+        if ($notifiable->email) {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $store = $this->data['store'] ?? null;
+        $fromName = match ($store) {
+            'acharu' => 'Acharu',
+            'tajashutki' => 'Taja Shutki',
+            default => config('mail.from.name', 'Multi Vendor'),
+        };
+
+        return (new MailMessage)
+            ->from(config('mail.from.address'), $fromName)
+            ->subject($this->data['title'] ?? 'Notification')
+            ->greeting('Hello ' . ($notifiable->name ?? 'Admin') . ',')
+            ->line($this->data['message'] ?? '')
+            ->when($this->data['link'] ?? null, fn($msg) => $msg->action('View Details', url('/admin' . $this->data['link'])))
+            ->line('Thank you for using our platform.');
+    }
+
     public function toArray(object $notifiable): array
     {
         return [
