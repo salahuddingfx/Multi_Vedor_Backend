@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\User;
+use App\Models\Coupon;
 use App\Notifications\AdminNotification;
 use Illuminate\Support\Facades\Notification;
 
@@ -104,7 +105,22 @@ class OrderController extends BaseController
                 }
             }
 
-            $discount = (float)($request->discount_amount ?? 0);
+            $discount = 0;
+            if ($request->coupon_code) {
+                $coupon = Coupon::where('code', $request->coupon_code)->first();
+                if ($coupon && $coupon->isValid()) {
+                    if ($coupon->type === 'percentage') {
+                        $discount = ($subtotal * (float)$coupon->value) / 100;
+                    } else {
+                        $discount = (float)$coupon->value;
+                    }
+                }
+            } else {
+                // If no coupon code but discount was passed (emergency fallback or manual adjustment)
+                // In production, we should probably only allow discount via coupon_code
+                $discount = (float)($request->discount_amount ?? 0);
+            }
+
             $totalAmount = ($subtotal + $deliveryCharge) - $discount;
             if ($totalAmount < 0) $totalAmount = 0;
             

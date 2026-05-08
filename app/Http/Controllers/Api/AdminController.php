@@ -432,14 +432,43 @@ class AdminController extends BaseController
 
     public function updateOrder(Request $request, $id) {
         $order = Order::findOrFail($id);
+        $oldLocation = $order->location;
+        
         $order->update($request->only([
             'customer_name', 
             'customer_phone', 
             'customer_address', 
             'location'
         ]));
+
+        // Recalculate delivery charge if location changed
+        if ($request->location && $request->location !== $oldLocation) {
+            $site = Site::find($order->site_id);
+            $settings = $site->settings ?? [];
+            
+            $insideCity = (float)($settings['delivery_inside'] ?? 70);
+            $outsideCity = (float)($settings['delivery_outside'] ?? 120);
+            $weightCharge = (float)($settings['delivery_per_kg'] ?? 10);
+            $freeThreshold = (float)($settings['free_delivery_threshold'] ?? 2500);
+
+            if ($order->subtotal >= $freeThreshold) {
+                $deliveryCharge = 0;
+            } else {
+                $deliveryCharge = ($order->location === 'Cox') ? $insideCity : $outsideCity;
+                if ($order->total_weight > 0.5) {
+                    $extraWeight = $order->total_weight - 0.5;
+                    $extraUnits = (int)ceil($extraWeight / 0.5);
+                    $deliveryCharge += ($extraUnits * $weightCharge);
+                }
+            }
+
+            $order->update([
+                'delivery_charge' => $deliveryCharge,
+                'total_amount' => ($order->subtotal + $deliveryCharge) - $order->discount_amount
+            ]);
+        }
         
-        return $this->sendResponse($order, 'Order details updated.');
+        return $this->sendResponse($order->fresh(), 'Order details updated.');
     }
 
     public function deleteOrder($id) {
@@ -657,10 +686,10 @@ class AdminController extends BaseController
             }
 
             $baseStats = $statsQuery->select([
-                // Realized Revenue: Only Delivered orders
-                DB::raw("SUM(CASE WHEN status = 'delivered' THEN subtotal ELSE 0 END) as realized_revenue"),
-                // Total Value: All non-cancelled orders
-                DB::raw("SUM(CASE WHEN status != 'cancelled' THEN subtotal ELSE 0 END) as total_product_price"),
+                // Realized Revenue: Only Delivered orders, subtracting discounts
+                DB::raw("SUM(CASE WHEN status = 'delivered' THEN (subtotal - discount_amount) ELSE 0 END) as realized_revenue"),
+                // Total Value: All non-cancelled orders, subtracting discounts
+                DB::raw("SUM(CASE WHEN status != 'cancelled' THEN (subtotal - discount_amount) ELSE 0 END) as total_product_price"),
                 DB::raw('SUM(delivery_charge) as total_delivery_charge'),
                 DB::raw('COUNT(*) as total_orders'),
                 DB::raw('COUNT(DISTINCT customer_phone) as total_customers')
@@ -851,11 +880,23 @@ class AdminController extends BaseController
         $product = Product::findOrFail($request->product_id);
         $previousStock = $product->stock;
         
+        // Use price from order items if order_id is provided, otherwise fallback to current product price
+        $unitPrice = (float)$product->price;
+        if ($request->order_id) {
+            $orderItem = DB::table('order_items')
+                ->where('order_id', $request->order_id)
+                ->where('product_id', $request->product_id)
+                ->first();
+            if ($orderItem) {
+                $unitPrice = (float)$orderItem->price;
+            }
+        }
+
         // Record in database (Legacy table)
         DB::table('product_returns')->insert([
             'product_id' => $request->product_id,
             'quantity' => $request->quantity,
-            'amount' => $product->price * $request->quantity,
+            'amount' => $unitPrice * $request->quantity,
             'order_id' => $request->order_id,
             'reason' => $request->reason,
             'created_at' => now(),
