@@ -132,7 +132,8 @@ class AdminController extends BaseController
             'description' => 'nullable|string',
             'name_bn' => 'nullable|string|max:255',
             'description_bn' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'is_featured' => 'sometimes|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -195,7 +196,8 @@ class AdminController extends BaseController
             'description' => 'nullable|string',
             'name_bn' => 'nullable|string|max:255',
             'description_bn' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'is_featured' => 'sometimes|boolean'
         ]);
 
         if ($validator->fails()) {
