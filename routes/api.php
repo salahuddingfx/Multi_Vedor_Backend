@@ -96,11 +96,12 @@ Route::prefix('admin')->group(function () {
     Route::put('/reviews/{id}', [ReviewController::class, 'updateAdminReview']);
     Route::delete('/reviews/{id}', [ReviewController::class, 'deleteAdminReview']);
 
-    // Admin User Management
+    // Admin User & Customer Management
     Route::get('/users', [AdminController::class, 'getUsers']);
     Route::post('/users', [AdminController::class, 'storeUser']);
     Route::put('/users/{id}', [AdminController::class, 'updateUser']);
     Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+    Route::get('/customers', [AdminController::class, 'getCustomers']);
 
     // Coupons
     Route::apiResource('coupons', CouponController::class);
