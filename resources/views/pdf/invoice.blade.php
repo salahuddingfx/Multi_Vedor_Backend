@@ -311,7 +311,7 @@
         /* Footer logic */
         .print-only-footer {
             position: fixed;
-            bottom: -50px;
+            bottom: 0;
             left: 0;
             right: 0;
             height: 50px;
@@ -319,7 +319,7 @@
             display: block;
         }
         .screen-only-footer {
-            display: none;
+            display: block;
         }
         .bottom-left {
             width: 60%;
@@ -531,6 +531,7 @@
         </table>
 
         @if(!isset($is_pdf) || !$is_pdf)
+        <div style="height: 100px;"></div> {{-- Spacer to prevent footer overlap on screen --}}
         <!-- Footer for Screen Preview -->
         <div class="screen-only-footer">
             <table style="width: 100%; border-collapse: collapse;">
