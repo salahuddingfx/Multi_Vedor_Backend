@@ -524,6 +524,12 @@ class AdminController extends BaseController
         return view('pdf.invoice', compact('order'));
     }
 
+    public function downloadInvoice($id) {
+        $order = Order::with(['items.product', 'site'])->findOrFail($id);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', compact('order'));
+        return $pdf->download("Invoice_{$order->tracking_id}.pdf");
+    }
+
     // Hero Slides
     public function getHeroSlides(Request $request) {
         $request->validate(['site_id' => 'required|exists:sites,id']);

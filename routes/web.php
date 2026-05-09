@@ -8,6 +8,7 @@ Route::get('/', function () {
 });
 
 Route::get('/orders/{id}/invoice', [AdminController::class, 'generateInvoice'])->name('admin.invoice');
+Route::get('/orders/{id}/invoice/download', [AdminController::class, 'downloadInvoice'])->name('admin.invoice.download');
 
 // Email Testing Routes
 Route::get('/test-mail/{site_id}/{email}', function ($site_id, $email) {
