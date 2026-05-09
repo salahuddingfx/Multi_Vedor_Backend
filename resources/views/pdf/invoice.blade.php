@@ -366,7 +366,7 @@
             <td class="bottom-left">
                 <div class="bottom-bar"></div>
                 <div class="bottom-contact">
-                    {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                    {{ $order->site?->settings['support_phone'] ?? $order->site?->settings['contact'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
                     {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
                     {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
                 </div>
@@ -436,11 +436,11 @@
 
                 <div style="float: right; text-align: right; margin-top: 10px;">
                     <div class="invoice-to-label" style="font-size: 13px;">Invoice From:</div>
-                    <div class="recipient-name" style="font-size: 14px;">{{ $order->site?->name ?? 'ACHARU' }}</div>
+                    <div class="recipient-name" style="font-size: 14px;">{{ $order->site?->settings['store_name'] ?? $order->site?->name ?? 'Acharu' }}</div>
                     <div class="recipient-address">
                         {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }}<br>
-                        {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }}<br>
-                        {{ $order->site?->settings['store_email'] ?? 'support@' . ($order->site?->slug ?? 'acharu') . '.com' }}
+                        {{ $order->site?->settings['support_phone'] ?? $order->site?->settings['contact'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }}<br>
+                        {{ $order->site?->settings['store_email'] ?? 'support@' . ($order->site?->slug === 'acharu' ? 'acharu.com' : 'tajashutki.com') }}
                     </div>
                 </div>
             </td>
@@ -538,7 +538,7 @@
                 <td class="bottom-left">
                     <div class="bottom-bar"></div>
                     <div class="bottom-contact">
-                        {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                        {{ $order->site?->settings['support_phone'] ?? $order->site?->settings['contact'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
                         {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
                         {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
                     </div>
