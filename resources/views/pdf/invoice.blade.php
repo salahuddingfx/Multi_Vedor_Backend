@@ -49,7 +49,7 @@
             
             .screen-only-footer { 
                 position: absolute;
-                bottom: 0.75in;
+                bottom: 0.5in;
                 left: 0.75in;
                 right: 0.75in;
                 width: calc(100% - 1.5in);
@@ -58,8 +58,15 @@
 
         @media print {
             .print-btn { display: none; }
-            .invoice-wrapper { width: 100%; height: 100%; box-shadow: none; border: none; margin-bottom: 50px; }
+            .invoice-wrapper { width: 100%; min-height: 100%; box-shadow: none; border: none; margin-bottom: 0; padding-bottom: 100px; }
             body { background: #fff; }
+            .screen-only-footer { 
+                position: fixed;
+                bottom: 30px;
+                left: 0.75in;
+                right: 0.75in;
+                width: calc(100% - 1.5in);
+            }
         }
 
         .invoice-wrapper {
@@ -314,7 +321,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 50px;
+            height: 60px;
             width: 100%;
             display: block;
         }
@@ -531,7 +538,6 @@
         </table>
 
         @if(!isset($is_pdf) || !$is_pdf)
-        <div style="height: 100px;"></div> {{-- Spacer to prevent footer overlap on screen --}}
         <!-- Footer for Screen Preview -->
         <div class="screen-only-footer">
             <table style="width: 100%; border-collapse: collapse;">
