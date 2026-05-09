@@ -351,6 +351,25 @@
     <button class="print-btn" onclick="window.print()">Print Invoice</button>
 
     <div class="invoice-wrapper">
+        <div class="absolute-bottom">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                <td class="bottom-left">
+                    <div class="bottom-bar"></div>
+                    <div class="bottom-contact">
+                        {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                        {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
+                        {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
+                    </div>
+                </td>
+                <td class="bottom-right">
+                    <div class="auth-sign-line"></div><br>
+                    <span class="auth-sign-text">Authorised Sign</span>
+                </td>
+                </tr>
+            </table>
+        </div>
+
         @if($order->payment_status === 'paid')
         <div class="paid-stamp">PAID</div>
         @endif
@@ -444,7 +463,7 @@
         <table class="footer-grid">
             <tr>
             <td class="footer-left">
-                <div class="thank-you-text">Thank you for your business</div>
+                <div class="thank-you-text">Thank you for shopping with us</div>
                 
                 <div class="terms-title">Terms & Conditions</div>
                 <div class="terms-text">
@@ -498,25 +517,6 @@
             </td>
             </tr>
         </table>
-
-        <div class="absolute-bottom">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                <td class="bottom-left">
-                    <div class="bottom-bar"></div>
-                    <div class="bottom-contact">
-                        {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
-                        {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
-                        {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
-                    </div>
-                </td>
-                <td class="bottom-right">
-                    <div class="auth-sign-line"></div><br>
-                    <span class="auth-sign-text">Authorised Sign</span>
-                </td>
-                </tr>
-            </table>
-        </div>
 
     </div>
 </body>
