@@ -43,7 +43,9 @@
             }
             .print-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
             
-            .absolute-bottom {
+            .print-only-footer { display: none !important; }
+            .screen-only-footer { 
+                display: block !important;
                 position: absolute !important;
                 bottom: 0.75in !important;
                 left: 0.75in !important;
@@ -304,13 +306,17 @@
             font-weight: 700;
         }
 
-        /* Absolute Bottom */
-        .absolute-bottom {
+        /* Footer logic */
+        .print-only-footer {
             position: fixed;
-            bottom: 0;
+            bottom: -0.75in;
             left: 0;
             right: 0;
             width: 100%;
+            display: block;
+        }
+        .screen-only-footer {
+            display: none;
         }
         .bottom-left {
             width: 60%;
@@ -350,25 +356,26 @@
 <body class="theme-{{ $order->site?->slug ?? 'unspecified' }}">
     <button class="print-btn" onclick="window.print()">Print Invoice</button>
 
+    <div class="print-only-footer">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+            <td class="bottom-left">
+                <div class="bottom-bar"></div>
+                <div class="bottom-contact">
+                    {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                    {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
+                    {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
+                </div>
+            </td>
+            <td class="bottom-right">
+                <div class="auth-sign-line"></div><br>
+                <span class="auth-sign-text">Authorised Sign</span>
+            </td>
+            </tr>
+        </table>
+    </div>
+
     <div class="invoice-wrapper">
-        <div class="absolute-bottom">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                <td class="bottom-left">
-                    <div class="bottom-bar"></div>
-                    <div class="bottom-contact">
-                        {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
-                        {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
-                        {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
-                    </div>
-                </td>
-                <td class="bottom-right">
-                    <div class="auth-sign-line"></div><br>
-                    <span class="auth-sign-text">Authorised Sign</span>
-                </td>
-                </tr>
-            </table>
-        </div>
 
         @if($order->payment_status === 'paid')
         <div class="paid-stamp">PAID</div>
@@ -517,6 +524,26 @@
             </td>
             </tr>
         </table>
+
+        <!-- Footer for Screen Preview -->
+        <div class="screen-only-footer">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                <td class="bottom-left">
+                    <div class="bottom-bar"></div>
+                    <div class="bottom-contact">
+                        {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                        {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
+                        {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
+                    </div>
+                </td>
+                <td class="bottom-right">
+                    <div class="auth-sign-line"></div><br>
+                    <span class="auth-sign-text">Authorised Sign</span>
+                </td>
+                </tr>
+            </table>
+        </div>
 
     </div>
 </body>
