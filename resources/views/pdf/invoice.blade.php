@@ -20,7 +20,7 @@
 
         /* Site Specific Themes */
         .theme-acharu { --primary: #800000; --primary-light: #fef2f2; }
-        .theme-taja-shutki { --primary: #064e3b; --primary-light: #f0fdf4; }
+        .theme-tajashutki { --primary: #064e3b; --primary-light: #f0fdf4; }
         .theme-unspecified { --primary: #fbbf24; --primary-light: #fef3c7; }
 
         .invoice-wrapper {
