@@ -23,6 +23,10 @@
         .theme-taja-shutki { --primary: #064e3b; --primary-light: #f0fdf4; }
         .theme-unspecified { --primary: #fbbf24; --primary-light: #fef3c7; }
 
+        .invoice-wrapper {
+            margin-bottom: 50px; /* Space for the fixed footer in DomPDF */
+        }
+
         @media screen {
             body { padding: 40px 0; }
             .invoice-wrapper {
