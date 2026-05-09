@@ -56,7 +56,7 @@
 
         @media print {
             .print-btn { display: none; }
-            .invoice-wrapper { width: 100%; height: 100%; box-shadow: none; border: none; }
+            .invoice-wrapper { width: 100%; height: 100%; box-shadow: none; border: none; margin-bottom: 50px; }
             body { background: #fff; }
         }
 
@@ -309,7 +309,7 @@
         /* Footer logic */
         .print-only-footer {
             position: fixed;
-            bottom: -50px;
+            bottom: 0px;
             left: 0;
             right: 0;
             height: 40px;
