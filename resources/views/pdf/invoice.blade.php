@@ -309,9 +309,10 @@
         /* Footer logic */
         .print-only-footer {
             position: fixed;
-            bottom: -40px;
+            bottom: -50px;
             left: 0;
             right: 0;
+            height: 40px;
             width: 100%;
             display: block;
         }
@@ -356,7 +357,7 @@
 <body class="theme-{{ $order->site?->slug ?? 'unspecified' }}">
     <button class="print-btn" onclick="window.print()">Print Invoice</button>
 
-    <div class="print-only-footer">
+    <footer class="print-only-footer">
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
             <td class="bottom-left">
@@ -373,9 +374,9 @@
             </td>
             </tr>
         </table>
-    </div>
+    </footer>
 
-    <div class="invoice-wrapper">
+    <main class="invoice-wrapper">
 
         @if($order->payment_status === 'paid')
         <div class="paid-stamp">PAID</div>
@@ -545,6 +546,6 @@
             </table>
         </div>
 
-    </div>
+    </main>
 </body>
 </html>
