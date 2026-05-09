@@ -60,14 +60,24 @@
 
         @media print {
             .print-btn { display: none; }
-            .invoice-wrapper { width: 100%; min-height: 100%; box-shadow: none; border: none; margin-bottom: 0; padding-bottom: 100px; }
-            body { background: #fff; }
+            .invoice-wrapper { 
+                width: 210mm !important; 
+                min-height: 297mm !important; 
+                box-shadow: none !important; 
+                border: none !important; 
+                margin: 0 !important; 
+                padding: 0.75in !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            body { background: #fff !important; }
             .screen-only-footer { 
-                position: fixed;
-                bottom: 30px;
-                left: 0.75in;
-                right: 0.75in;
-                width: calc(100% - 1.5in);
+                margin-top: auto !important;
+                position: relative !important;
+                bottom: auto !important;
+                left: auto !important;
+                right: auto !important;
+                width: 100% !important;
             }
         }
 
