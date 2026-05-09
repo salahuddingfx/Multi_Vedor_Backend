@@ -366,11 +366,17 @@
     </style>
 </head>
 @php
-    $siteSettings = $order->site?->settings ?? [];
+    $siteSettings = $order->site?->settings;
+    if (is_string($siteSettings)) {
+        $siteSettings = json_decode($siteSettings, true) ?? [];
+    }
+    
     $phone = $siteSettings['support_phone'] ?? $siteSettings['contact'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000');
     $address = $siteSettings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh');
     $website = $siteSettings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com');
     $email = $siteSettings['store_email'] ?? $siteSettings['email'] ?? 'support@' . ($order->site?->slug === 'acharu' ? 'acharu.com' : 'tajashutki.com');
+    $storeName = $siteSettings['store_name'] ?? $order->site?->name ?? ($order->site?->slug === 'acharu' ? 'ACHARU' : 'TAJA SHUTKI');
+    $tagline = $siteSettings['tagline'] ?? ($order->site?->slug === 'acharu' ? 'Premium Artisanal Collection' : 'Freshness Delivered Daily');
 @endphp
 <body class="theme-{{ $order->site?->slug ?? 'unspecified' }}">
     <button class="print-btn" onclick="window.print()">Print Invoice</button>
@@ -402,12 +408,8 @@
 
         <div class="header-top">
             <div class="logo-box">
-                @if(data_get($order->site, 'settings.logo_url'))
-                    <img src="{{ data_get($order->site, 'settings.logo_url') }}" alt="Logo" style="max-height: 45px; display: block; margin-bottom: 5px;">
-                @else
-                    <h1 class="logo-title">{{ $order->site?->name ?? 'ACHARU' }}</h1>
-                @endif
-                <div class="logo-tagline">{{ $order->site?->slug === 'acharu' ? 'Premium Artisanal Collection' : 'Freshness Delivered Daily' }}</div>
+                <h1 class="logo-title">{{ $storeName }}</h1>
+                <div class="logo-tagline">{{ $tagline }}</div>
             </div>
         </div>
 
@@ -447,14 +449,14 @@
                     </tr>
                     <tr>
                         <td class="meta-label">Date</td>
-                        <td class="meta-value">{{ $order->created_at->format('d / m / Y') }}</td>
+                        <td class="meta-value">{{ $order->created_at->format('d/m/Y') }}</td>
                     </tr>
                 </table>
                 <div style="clear: both;"></div>
 
                 <div style="float: right; text-align: right; margin-top: 10px;">
                     <div class="invoice-to-label" style="font-size: 13px;">Invoice From:</div>
-                    <div class="recipient-name" style="font-size: 14px;">{{ data_get($order->site, 'settings.store_name') ?? $order->site?->name ?? 'Acharu' }}</div>
+                    <div class="recipient-name" style="font-size: 14px;">{{ $storeName }}</div>
                     <div class="recipient-address">
                         {{ $address }}<br>
                         {{ $phone }}<br>
