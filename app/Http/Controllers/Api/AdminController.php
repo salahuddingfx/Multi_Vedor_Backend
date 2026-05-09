@@ -526,7 +526,8 @@ class AdminController extends BaseController
 
     public function downloadInvoice($id) {
         $order = Order::with(['items.product', 'site'])->findOrFail($id);
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', compact('order'));
+        $is_pdf = true;
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', compact('order', 'is_pdf'));
         return $pdf->download("Invoice_{$order->tracking_id}.pdf");
     }
 
