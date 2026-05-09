@@ -377,13 +377,20 @@
                 <div class="invoice-to-label">Invoice to:</div>
                 <div class="recipient-name">{{ $order->customer_name }}</div>
                 <div class="recipient-address">
-                    {{ $order->phone }}<br>
-                    {{ $order->address }}<br>
+                    {{ $order->customer_phone }}<br>
+                    {{ $order->customer_address }}<br>
                     {{ $order->location }}
                 </div>
+                
+                @if($order->customer_notes)
+                <div style="margin-top: 15px; padding: 10px; background-color: #fef3c7; border-left: 3px solid #f59e0b; color: #b45309; font-size: 11px; font-weight: 600;">
+                    <span style="font-weight: 800; display: block; margin-bottom: 2px;">Customer Note:</span>
+                    {{ $order->customer_notes }}
+                </div>
+                @endif
             </div>
             <div class="info-right">
-                <table class="meta-table">
+                <table class="meta-table" style="margin-bottom: 20px;">
                     <tr>
                         <td class="meta-label">Invoice#</td>
                         <td class="meta-value">{{ strtoupper($order->tracking_id) }}</td>
@@ -393,6 +400,17 @@
                         <td class="meta-value">{{ $order->created_at->format('d / m / Y') }}</td>
                     </tr>
                 </table>
+                <div style="clear: both;"></div>
+
+                <div style="float: right; text-align: right; margin-top: 10px;">
+                    <div class="invoice-to-label" style="font-size: 13px;">Invoice From:</div>
+                    <div class="recipient-name" style="font-size: 14px;">{{ $order->site?->name ?? 'ACHARU' }}</div>
+                    <div class="recipient-address">
+                        {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }}<br>
+                        {{ $order->site?->settings['contact_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }}<br>
+                        {{ $order->site?->settings['contact_email'] ?? 'support@' . ($order->site?->slug ?? 'acharu') . '.com' }}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -447,7 +465,7 @@
                     @if($order->customer_notes)
                     <tr>
                         <td class="payment-label">Note:</td>
-                        <td class="payment-val">{{ $order->customer_notes }}</td>
+                        <td class="payment-val">Included in Customer Details</td>
                     </tr>
                     @endif
                 </table>
@@ -481,9 +499,9 @@
             <div class="bottom-left">
                 <div class="bottom-bar"></div>
                 <div class="bottom-contact">
-                    {{ $order->site?->slug === 'acharu' ? '01700000000' : '01800000000' }} &nbsp;|&nbsp; 
-                    {{ $order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh' }} &nbsp;|&nbsp; 
-                    {{ $order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com' }}
+                    {{ $order->site?->settings['contact_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                    {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
+                    {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
                 </div>
             </div>
             <div class="bottom-right">
