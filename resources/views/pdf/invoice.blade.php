@@ -311,10 +311,10 @@
         /* Footer logic */
         .print-only-footer {
             position: fixed;
-            bottom: 0px;
+            bottom: -50px;
             left: 0;
             right: 0;
-            height: 40px;
+            height: 50px;
             width: 100%;
             display: block;
         }
