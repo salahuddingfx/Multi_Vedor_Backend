@@ -227,7 +227,7 @@
         .items-table th {
             background-color: #334155;
             color: #ffffff;
-            padding: 12px 15px;
+            padding: 8px 15px;
             text-align: left;
             font-size: 11px;
             font-weight: 600;
