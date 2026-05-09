@@ -505,7 +505,26 @@
                 <tr>
                     <td class="index">{{ $index + 1 }}</td>
                     <td>
-                        {{ $item->name }} @if($item->variation_info) ({{ $item->variation_info }}) @endif
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                @if($item->product && $item->product->images->where('is_primary', true)->first())
+                                <td style="width: 45px; padding-right: 12px; vertical-align: top;">
+                                    <img src="{{ $item->product->images->where('is_primary', true)->first()->image_path }}" 
+                                         style="width: 45px; height: 45px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                </td>
+                                @endif
+                                <td style="vertical-align: top;">
+                                    <div style="font-weight: 700;">
+                                        {{ $item->name }} @if($item->variation_info) <span style="color: var(--primary); font-size: 9px;">({{ $item->variation_info }})</span> @endif
+                                    </div>
+                                    @if($item->product && $item->product->description)
+                                    <div style="font-size: 9px; color: #64748b; font-weight: 500; line-height: 1.3; margin-top: 2px;">
+                                        {{ Str::limit($item->product->description, 100) }}
+                                    </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                     <td class="center">৳{{ number_format($item->price, 2) }}</td>
                     <td class="center">{{ $item->quantity }}</td>
