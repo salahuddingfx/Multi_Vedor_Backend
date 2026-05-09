@@ -322,7 +322,8 @@ class AdminController extends BaseController
     // Category CRUD
     public function getCategories(Request $request) {
         $siteId = $request->site_id;
-        $categories = Category::where('site_id', $siteId)->get();
+        // Load hierarchical structure
+        $categories = Category::where('site_id', $siteId)->whereNull('parent_id')->with('children')->get();
         return $this->sendResponse($categories, 'Categories for site ' . $siteId);
     }
 
@@ -330,6 +331,8 @@ class AdminController extends BaseController
         $validated = $request->validate([
             'site_id' => 'required',
             'name' => 'required',
+            'name_bn' => 'nullable',
+            'parent_id' => 'nullable|exists:categories,id',
             'is_featured' => 'boolean'
         ]);
         
@@ -345,6 +348,8 @@ class AdminController extends BaseController
         $category = Category::findOrFail($id);
         $validated = $request->validate([
             'name' => 'required',
+            'name_bn' => 'nullable',
+            'parent_id' => 'nullable|exists:categories,id',
             'is_featured' => 'boolean'
         ]);
         
