@@ -876,6 +876,7 @@ class AdminController extends BaseController
             ->whereBetween('created_at', [$startDate, $endDate])
             ->where('status', '!=', 'cancelled');
 
+
         if ($siteId) {
             $query->where('site_id', $siteId);
         }
@@ -1018,8 +1019,9 @@ class AdminController extends BaseController
         Cache::forget("init_{$site->slug}");
         Cache::forget("site_settings_{$siteId}");
 
-        // Bump version so frontend knows data changed (lightweight version polling)
-        Cache::increment("storefront_version_{$siteId}");
+        // Bump version so frontend knows data changed
+        $version = Cache::get("storefront_version_{$siteId}", 0);
+        Cache::put("storefront_version_{$siteId}", $version + 1, 86400); // 24 hours
     }
 
     /**
