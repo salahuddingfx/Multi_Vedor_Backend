@@ -365,6 +365,13 @@
 
     </style>
 </head>
+@php
+    $siteSettings = $order->site?->settings ?? [];
+    $phone = $siteSettings['support_phone'] ?? $siteSettings['contact'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000');
+    $address = $siteSettings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh');
+    $website = $siteSettings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com');
+    $email = $siteSettings['store_email'] ?? $siteSettings['email'] ?? 'support@' . ($order->site?->slug === 'acharu' ? 'acharu.com' : 'tajashutki.com');
+@endphp
 <body class="theme-{{ $order->site?->slug ?? 'unspecified' }}">
     <button class="print-btn" onclick="window.print()">Print Invoice</button>
 
