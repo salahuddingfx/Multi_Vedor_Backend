@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4;
-            margin: 0.75in;
+            margin: 0;
         }
         body {
             font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
@@ -60,24 +60,31 @@
 
         @media print {
             .print-btn { display: none; }
+            html, body { 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                height: 297mm !important;
+                background: #fff !important;
+            }
             .invoice-wrapper { 
                 width: 210mm !important; 
-                min-height: 297mm !important; 
+                height: 297mm !important; 
+                min-height: 297mm !important;
                 box-shadow: none !important; 
                 border: none !important; 
                 margin: 0 !important; 
                 padding: 0.75in !important;
                 display: flex !important;
                 flex-direction: column !important;
+                box-sizing: border-box !important;
+                position: relative !important;
             }
-            body { background: #fff !important; }
             .screen-only-footer { 
                 margin-top: auto !important;
+                padding-bottom: 0 !important;
                 position: relative !important;
-                bottom: auto !important;
-                left: auto !important;
-                right: auto !important;
                 width: 100% !important;
+                display: block !important;
             }
         }
 
