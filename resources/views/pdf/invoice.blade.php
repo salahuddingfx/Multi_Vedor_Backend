@@ -324,9 +324,11 @@
             height: 60px;
             width: 100%;
             display: block;
+            z-index: 9999;
         }
         .screen-only-footer {
             display: block;
+            z-index: 50;
         }
         .bottom-left {
             width: 60%;
@@ -537,28 +539,28 @@
             </tr>
         </table>
 
-        @if(!isset($is_pdf) || !$is_pdf)
-        <!-- Footer for Screen Preview -->
-        <div class="screen-only-footer">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                <td class="bottom-left">
-                    <div class="bottom-bar"></div>
-                    <div class="bottom-contact">
-                        {{ data_get($order->site, 'settings.support_phone') ?? data_get($order->site, 'settings.contact') ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
-                        {{ data_get($order->site, 'settings.address') ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
-                        {{ data_get($order->site, 'settings.website') ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
-                    </div>
-                </td>
-                <td class="bottom-right">
-                    <div class="auth-sign-line"></div><br>
-                    <span class="auth-sign-text">Authorised Sign</span>
-                </td>
-                </tr>
-            </table>
-        </div>
-        @endif
-
     </main>
+
+    @if(!isset($is_pdf) || !$is_pdf)
+    <!-- Footer for Screen Preview -->
+    <div class="screen-only-footer">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+            <td class="bottom-left">
+                <div class="bottom-bar"></div>
+                <div class="bottom-contact">
+                    {{ data_get($order->site, 'settings.support_phone') ?? data_get($order->site, 'settings.contact') ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                    {{ data_get($order->site, 'settings.address') ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
+                    {{ data_get($order->site, 'settings.website') ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
+                </div>
+            </td>
+            <td class="bottom-right">
+                <div class="auth-sign-line"></div><br>
+                <span class="auth-sign-text">Authorised Sign</span>
+            </td>
+            </tr>
+        </table>
+    </div>
+    @endif
 </body>
 </html>
