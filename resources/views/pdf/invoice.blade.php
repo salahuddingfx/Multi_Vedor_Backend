@@ -84,8 +84,7 @@
                 padding-bottom: 0 !important;
                 position: relative !important;
                 width: 100% !important;
-                display: block !important;
-            }
+                display: block !important;            }
         }
 
         .invoice-wrapper {
