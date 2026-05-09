@@ -28,7 +28,7 @@
         }
 
         @media screen {
-            body { padding: 40px 0; }
+            body { padding: 40px 0; background: #f1f5f9; }
             .invoice-wrapper {
                 width: 210mm;
                 min-height: 297mm;
@@ -38,6 +38,8 @@
                 box-sizing: border-box;
                 padding: 0.75in;
                 position: relative;
+                display: flex;
+                flex-direction: column;
             }
             .print-btn {
                 position: fixed; bottom: 30px; right: 30px;
@@ -318,7 +320,7 @@
         /* Footer logic */
         .print-only-footer {
             position: fixed;
-            bottom: 0.75in;
+            bottom: 0.5in;
             left: 0.75in;
             right: 0.75in;
             width: calc(100% - 1.5in);
@@ -326,12 +328,14 @@
             z-index: 9999;
             border-top: 1px solid #e2e8f0;
             padding-top: 20px;
+            background: #fff;
         }
         .screen-only-footer {
-            display: block;
-            z-index: 50;
+            margin-top: auto;
+            width: 100%;
             border-top: 1px solid #e2e8f0;
             padding-top: 20px;
+            background: #fff;
         }
         .bottom-left {
             width: 60%;
@@ -553,26 +557,25 @@
             </tr>
         </table>
 
+        @if(!isset($is_pdf) || !$is_pdf)
+        <!-- Footer for Screen Preview -->
+        <div class="screen-only-footer">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                <td class="bottom-left">
+                    <div class="bottom-bar"></div>
+                    <div class="bottom-contact">
+                        {{ $phone }} &nbsp;|&nbsp; {{ $address }} &nbsp;|&nbsp; {{ $website }}
+                    </div>
+                </td>
+                <td class="bottom-right">
+                    <div class="auth-sign-line"></div><br>
+                    <span class="auth-sign-text">Authorised Sign</span>
+                </td>
+                </tr>
+            </table>
+        </div>
+        @endif
     </main>
-
-    @if(!isset($is_pdf) || !$is_pdf)
-    <!-- Footer for Screen Preview -->
-    <div class="screen-only-footer">
-        <table style="width: 100%; border-collapse: collapse; background-color: #fff;">
-            <tr>
-            <td class="bottom-left">
-                <div class="bottom-bar"></div>
-                <div class="bottom-contact">
-                    {{ $phone }} &nbsp;|&nbsp; {{ $address }} &nbsp;|&nbsp; {{ $website }}
-                </div>
-            </td>
-            <td class="bottom-right">
-                <div class="auth-sign-line"></div><br>
-                <span class="auth-sign-text">Authorised Sign</span>
-            </td>
-            </tr>
-        </table>
-    </div>
-    @endif
 </body>
 </html>
