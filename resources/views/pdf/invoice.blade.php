@@ -530,6 +530,7 @@
             </tr>
         </table>
 
+        @if(!isset($is_pdf) || !$is_pdf)
         <!-- Footer for Screen Preview -->
         <div class="screen-only-footer">
             <table style="width: 100%; border-collapse: collapse;">
@@ -549,6 +550,7 @@
                 </tr>
             </table>
         </div>
+        @endif
 
     </main>
 </body>
