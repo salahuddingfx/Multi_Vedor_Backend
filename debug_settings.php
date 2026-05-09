@@ -4,11 +4,14 @@ $app = require_once 'bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-$sites = \App\Models\Site::all();
-foreach ($sites as $s) {
-    echo "Site: " . $s->name . " (Slug: " . $s->slug . ")\n";
-    echo "Support Phone: " . ($s->settings['support_phone'] ?? 'NULL') . "\n";
-    echo "Contact: " . ($s->settings['contact'] ?? 'NULL') . "\n";
-    echo "Address: " . ($s->settings['address'] ?? 'NULL') . "\n";
-    echo "-----------------------------------\n";
+$order = \App\Models\Order::with('site')->find(19);
+if ($order) {
+    echo "Order ID: " . $order->id . "\n";
+    echo "Site: " . ($order->site->name ?? 'NULL') . "\n";
+    $settings = $order->site->settings;
+    echo "Settings Type: " . gettype($settings) . "\n";
+    echo "Support Phone via array: " . ($settings['support_phone'] ?? 'NULL') . "\n";
+    echo "Support Phone via object: " . ($settings->support_phone ?? 'NULL') . "\n";
+} else {
+    echo "Order 19 not found\n";
 }
