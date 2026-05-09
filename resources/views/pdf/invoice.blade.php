@@ -6,240 +6,264 @@
     <style>
         @page {
             size: A4;
-            margin: 0.3in;
+            margin: 0;
         }
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            color: #2D3748;
+            color: #1e293b;
             font-size: 13px;
             line-height: 1.5;
-            background: #ffffff;
-            position: relative;
+            background: #f8fafc;
         }
 
         /* Site Specific Themes */
-        .theme-acharu { --primary: #800000; --primary-light: #fff5f5; --accent: #1A202C; }
-        .theme-taja-shutki { --primary: #006400; --primary-light: #f0fff4; --accent: #1A202C; }
+        .theme-acharu { --primary: #800000; --primary-light: #fef2f2; --accent: #1e293b; }
+        .theme-taja-shutki { --primary: #064e3b; --primary-light: #f0fdf4; --accent: #1e293b; }
+        .theme-unspecified { --primary: #1e293b; --primary-light: #f1f5f9; --accent: #1e293b; }
 
         @media screen {
-            body { background: #E2E8F0; padding: 40px 0; }
+            body { background: #e2e8f0; padding: 40px 0; }
             .invoice-wrapper {
                 width: 210mm;
                 min-height: 297mm;
                 margin: 0 auto;
                 background: #ffffff;
-                padding: 0.5in;
-                padding-bottom: 50mm;
+                padding: 0.75in;
                 box-shadow: 0 20px 50px rgba(0,0,0,0.1);
                 box-sizing: border-box;
                 position: relative;
             }
             .print-btn {
                 position: fixed; bottom: 30px; right: 30px;
-                background: #2D3748; color: #fff; padding: 12px 25px;
+                background: #1e293b; color: #fff; padding: 12px 25px;
                 border-radius: 50px; font-weight: 700; cursor: pointer; border: none;
                 z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
             }
+            .print-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
         }
 
         @media print {
             .print-btn { display: none; }
-            .invoice-wrapper { box-shadow: none; padding: 0.3in; padding-bottom: 40mm; min-height: 100%; }
+            .invoice-wrapper { width: 100%; height: 100%; padding: 0.5in; box-shadow: none; }
             body { background: #fff; }
         }
 
-        .header { margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 8px solid var(--primary); padding-bottom: 30px; }
         .header-left { float: left; width: 60%; }
-        .header-right { float: right; width: 35%; text-align: right; }
+        .header-right { float: right; width: 40%; text-align: right; }
         .clear { clear: both; }
 
-        .logo { font-size: 42px; font-weight: 900; color: var(--primary); letter-spacing: -2px; line-height: 1; }
-        .tagline { font-size: 12px; font-weight: 800; color: #718096; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+        .logo { font-size: 42px; font-weight: 900; color: var(--primary); letter-spacing: -2px; line-height: 1; text-transform: uppercase; }
+        .tagline { font-size: 14px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px; }
         
-        .invoice-title { font-size: 28px; font-weight: 900; color: #1A202C; text-transform: uppercase; }
-        .tracking-badge { 
-            display: inline-block; background: var(--primary); color: #fff; 
-            padding: 6px 15px; border-radius: 50px; font-weight: 900; 
-            font-size: 14px; margin-top: 8px; margin-bottom: 5px;
+        .invoice-title { font-size: 24px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; }
+        .tracking-box { 
+            display: inline-block; background: #f1f5f9; color: var(--primary); 
+            padding: 8px 16px; border-radius: 8px; font-weight: 900; 
+            font-size: 14px; margin-top: 12px; margin-bottom: 8px;
         }
-        .date-text { font-size: 12px; color: #A0AEC0; font-weight: 700; }
+        .date-text { font-size: 12px; color: #94a3b8; font-weight: 700; }
 
-        .header-bar { border-bottom: 8px solid var(--primary); margin: 15px 0 30px 0; }
-
-        .info-row { margin-bottom: 40px; }
+        .info-grid { margin-bottom: 50px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; }
         .recipient-box { 
-            float: left; width: 55%; background: #F8FAFC; border-radius: 25px; padding: 25px;
-            border: 1px solid #EDF2F7; min-height: 180px;
+            float: left; width: 55%; background: #f8fafc; border-radius: 20px; padding: 30px;
+            border: 1px solid #f1f5f9; min-height: 160px;
         }
-        .summary-list { float: right; width: 35%; padding-top: 10px; }
+        .summary-box { float: right; width: 38%; padding-top: 5px; }
 
-        .section-label { font-size: 10px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; display: block; }
-        .recipient-name { font-size: 22px; font-weight: 900; color: #1A202C; margin-bottom: 5px; }
-        .recipient-info { font-size: 14px; color: #4A5568; font-weight: 600; line-height: 1.8; }
+        .section-label { font-size: 11px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: block; opacity: 0.8; }
+        .recipient-name { font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 6px; }
+        .recipient-info { font-size: 14px; color: #475569; font-weight: 600; line-height: 1.6; }
 
-        .summary-item { margin-bottom: 12px; clear: both; font-size: 13px; }
-        .summary-label { float: left; color: #718096; font-weight: 700; }
-        .summary-val { float: right; color: #1A202C; font-weight: 800; text-align: right; }
+        .summary-item { margin-bottom: 10px; clear: both; font-size: 13px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+        .summary-label { float: left; color: #64748b; font-weight: 700; }
+        .summary-val { float: right; color: #0f172a; font-weight: 900; text-transform: uppercase; }
 
-        .items-header { 
-            border-bottom: 1px solid #EDF2F7; padding-bottom: 10px; margin-bottom: 20px;
-            font-size: 10px; font-weight: 800; color: #A0AEC0; text-transform: uppercase; letter-spacing: 2px;
+        .items-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; margin-bottom: 40px; }
+        .items-table th { 
+            text-align: left; font-size: 11px; font-weight: 900; color: #94a3b8; 
+            text-transform: uppercase; letter-spacing: 1px; padding: 0 20px 10px;
         }
-        .item-col-details { float: left; width: 60%; }
-        .item-col-qty { float: left; width: 15%; text-align: center; }
-        .item-col-total { float: right; width: 25%; text-align: right; }
+        .items-table td { background: #fff; border: 1px solid #f1f5f9; padding: 20px; }
+        .items-table td:first-child { border-radius: 15px 0 0 15px; border-right: none; }
+        .items-table td:last-child { border-radius: 0 15px 15px 0; border-left: none; text-align: right; }
+        .items-table td:nth-child(2) { border-left: none; border-right: none; text-align: center; }
 
-        .product-row { padding: 25px 0; border-bottom: 1px solid #F8FAFC; clear: both; page-break-inside: avoid; }
-        .product-card { 
-            background: #fff; border: 1px solid #EDF2F7; border-radius: 20px; padding: 20px; 
-            margin-bottom: 15px; position: relative;
-        }
-        .product-name { font-size: 16px; font-weight: 900; color: #1A202C; margin-bottom: 4px; }
-        .product-price-sm { font-size: 12px; color: var(--primary); font-weight: 700; }
-        .product-qty-val { font-size: 20px; font-weight: 900; color: #1A202C; margin-top: 5px; display: block; }
-        .product-total-val { font-size: 22px; font-weight: 900; color: #1A202C; }
+        .product-name { font-size: 15px; font-weight: 900; color: #1e293b; margin-bottom: 4px; }
+        .product-meta { font-size: 12px; color: var(--primary); font-weight: 700; }
+        .qty-badge { background: #f8fafc; padding: 6px 12px; border-radius: 8px; font-weight: 900; color: #1e293b; display: inline-block; }
+        .line-total { font-size: 16px; font-weight: 900; color: #0f172a; }
 
-        .bottom-row { margin-top: 25px; clear: both; page-break-inside: avoid; }
-        .note-box { 
-            float: left; width: 55%; border: 1px dashed #FED7D7; border-radius: 15px; padding: 15px;
-            background: #FFF5F5; min-height: 100px;
+        .bottom-section { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .note-container { 
+            float: left; width: 50%; background: var(--primary-light); border-radius: 20px; padding: 25px;
+            border: 1px dashed var(--primary); opacity: 0.9;
         }
-        .total-box { 
-            float: right; width: 40%; background: #0F172A; border-radius: 20px; padding: 20px;
-            color: #fff; min-height: 100px;
+        .total-container { 
+            float: right; width: 42%; background: #0f172a; border-radius: 25px; padding: 30px;
+            color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
-        .total-line { margin-bottom: 8px; clear: both; font-size: 13px; opacity: 0.8; }
-        .total-label-light { float: left; font-weight: 600; }
-        .total-val-light { float: right; font-weight: 700; }
+        .total-row { margin-bottom: 12px; clear: both; font-size: 14px; opacity: 0.7; }
+        .total-label { float: left; font-weight: 600; }
+        .total-val { float: right; font-weight: 700; }
         
-        .grand-total-row { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 5px; clear: both; }
-        .grand-total-label { float: left; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
-        .grand-total-val { float: right; font-size: 26px; font-weight: 900; }
-        .vat-text { font-size: 10px; opacity: 0.5; text-align: right; clear: both; margin-top: 2px; }
+        .grand-total-row { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 20px; clear: both; }
+        .grand-total-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; margin-bottom: 5px; display: block; }
+        .grand-total-val { font-size: 32px; font-weight: 900; letter-spacing: -1px; float: left; }
+        .vat-badge { float: right; font-size: 12px; font-weight: 700; opacity: 0.4; margin-top: 15px; }
 
         .footer { 
-            position: absolute; bottom: 20px; left: 0; right: 0; text-align: center;
+            position: absolute; bottom: 40px; left: 0; right: 0; text-align: center; padding: 0 0.75in;
+            border-top: 2px solid #f1f5f9; paddingTop: 30px;
         }
-        .footer-thank { font-size: 16px; font-weight: 900; color: #1A202C; margin-bottom: 5px; }
-        .footer-tagline { font-size: 10px; font-weight: 800; color: #A0AEC0; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
-        .footer-legal { font-size: 9px; color: #CBD5E0; text-transform: uppercase; letter-spacing: 1px; }
+        .footer-thank { font-size: 16px; font-weight: 900; color: #1e293b; margin-bottom: 8px; }
+        .footer-tagline { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+        .footer-legal { font-size: 9px; color: #cbd5e1; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* PAID Watermark */
+        .paid-stamp {
+            position: absolute;
+            top: 220px;
+            right: 80px;
+            border: 8px double #10b981;
+            border-radius: 20px;
+            color: #10b981;
+            font-size: 60px;
+            font-weight: 900;
+            padding: 10px 40px;
+            transform: rotate(-15deg);
+            opacity: 0.15;
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            z-index: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
-<body class="theme-{{ $order->site?->slug }}">
-    @media screen
+<body class="theme-{{ $order->site?->slug ?? 'unspecified' }}">
     <button class="print-btn" onclick="window.print()">Print Invoice</button>
-    @endmedia
 
     <div class="invoice-wrapper">
+        @if($order->payment_status === 'paid')
+        <div class="paid-stamp">PAID</div>
+        @endif
+
         <div class="header">
             <div class="header-left">
                 <div class="logo">{{ $order->site?->name ?? 'ACHARU' }}</div>
                 <div class="tagline">{{ $order->site?->slug === 'acharu' ? 'PREMIUM ARTISANAL COLLECTION' : 'FRESHNESS DELIVERED DAILY' }}</div>
             </div>
             <div class="header-right">
-                <div class="invoice-title">TAX INVOICE</div>
-                <div class="tracking-badge">#{{ strtoupper($order->tracking_id) }}</div>
-                <div class="date-text">{{ $order->created_at->format('M d, Y') }}</div>
+                <div class="invoice-title">Tax Invoice</div>
+                <div class="tracking-box">#{{ strtoupper($order->tracking_id) }}</div>
+                <div class="date-text">{{ $order->created_at->format('F d, Y') }}</div>
             </div>
             <div class="clear"></div>
         </div>
 
-        <div class="header-bar"></div>
-
-        <div class="info-row">
+        <div class="info-grid">
             <div class="recipient-box">
-                <span class="section-label">Recipient Information</span>
+                <span class="section-label">Billed To</span>
                 <div class="recipient-name">{{ $order->customer_name }}</div>
                 <div class="recipient-info">
                     {{ $order->phone }}<br>
                     {{ $order->address }}
                 </div>
+                @if($order->customer_notes)
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                    <span style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: var(--primary); opacity: 0.6;">Note:</span>
+                    <div style="font-size: 12px; font-weight: 700; color: #1e293b;">{{ $order->customer_notes }}</div>
+                </div>
+                @endif
             </div>
-            <div class="summary-list">
-                <span class="section-label">Order Summary</span>
+            <div class="summary-box">
+                <span class="section-label">Order Details</span>
                 <div class="summary-item">
-                    <span class="summary-label">Order Status:</span>
-                    <span class="summary-val" style="text-transform: uppercase;">{{ $order->status }}</span>
+                    <span class="summary-label">Status</span>
+                    <span class="summary-val">{{ $order->status }}</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label">Payment Method:</span>
-                    <span class="summary-val" style="text-transform: uppercase;">{{ $order->payment_method }}</span>
+                    <span class="summary-label">Payment</span>
+                    <span class="summary-val">{{ $order->payment_method }}</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label" style="color: {{ $order->payment_status === 'unpaid' ? '#800000' : '#059669' }};">Payment Status:</span>
-                    <span class="summary-val" style="text-transform: uppercase; color: {{ $order->payment_status === 'unpaid' ? '#800000' : '#059669' }};">{{ $order->payment_status }}</span>
+                    <span class="summary-label" style="color: {{ $order->payment_status === 'unpaid' ? '#b91c1c' : '#059669' }};">Payment Status</span>
+                    <span class="summary-val" style="color: {{ $order->payment_status === 'unpaid' ? '#b91c1c' : '#059669' }};">{{ $order->payment_status }}</span>
                 </div>
-                <div class="summary-item">
-                    <span class="summary-label">Total Weight:</span>
-                    <span class="summary-val">{{ number_format($order->items->sum(fn($i) => $i->product?->weight * $i->quantity), 2) }} KG</span>
+                <div class="summary-item" style="border: none;">
+                    <span class="summary-label">Total Weight</span>
+                    <span class="summary-val">{{ number_format($order->items->sum(fn($i) => ($i->product?->weight ?? 0) * $i->quantity), 2) }} KG</span>
                 </div>
             </div>
             <div class="clear"></div>
         </div>
 
-        <div class="items-header">
-            <div class="item-col-details">Item Details</div>
-            <div class="item-col-qty">Quantity</div>
-            <div class="item-col-total">Line Total</div>
-            <div class="clear"></div>
-        </div>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th width="60%">Description</th>
+                    <th width="15%">Quantity</th>
+                    <th width="25%">Line Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($order->items as $item)
+                <tr>
+                    <td>
+                        <div class="product-name">{{ $item->name }} @if($item->variation_info) ({{ $item->variation_info }}) @endif</div>
+                        <div class="product-meta">Unit Price: ৳{{ number_format($item->price, 0) }}</div>
+                    </td>
+                    <td>
+                        <span class="qty-badge">{{ $item->quantity }}</span>
+                    </td>
+                    <td>
+                        <span class="line-total">৳{{ number_format($item->price * $item->quantity, 0) }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
 
-        <div class="products-list">
-            @foreach($order->items as $item)
-            <div class="product-card">
-                <div class="item-col-details">
-                    <div class="product-name">{{ $item->name }} @if($item->variation_info) ({{ $item->variation_info }}) @endif</div>
-                    <div class="product-price-sm">Unit Price: ৳{{ number_format($item->price, 0) }}</div>
-                </div>
-                <div class="item-col-qty">
-                    <span class="product-qty-val">{{ $item->quantity }}</span>
-                </div>
-                <div class="item-col-total">
-                    <span class="product-total-val">৳{{ number_format($item->price * $item->quantity, 0) }}</span>
-                </div>
-                <div class="clear"></div>
-            </div>
-            @endforeach
-        </div>
-
-        <div class="bottom-row">
-            <div class="note-box">
-                <span class="section-label">Note to Customer:</span>
-                <p style="font-size: 12px; color: #718096; font-weight: 600; line-height: 1.6;">
-                    {{ $order->customer_notes ?: 'Please check your items upon delivery. For any concerns regarding quality or packaging, contact our support team with your Invoice ID.' }}
+        <div class="bottom-section">
+            <div class="note-container">
+                <span class="section-label" style="color: var(--primary); margin-bottom: 10px;">Customer Notice</span>
+                <p style="font-size: 12px; color: #475569; font-weight: 600; line-height: 1.6; margin: 0;">
+                    Please check your items upon delivery. For any concerns regarding quality or packaging, contact our support team with your Invoice ID.
                 </p>
             </div>
-            <div class="total-box">
-                <div class="total-line">
-                    <span class="total-label-light">Subtotal</span>
-                    <span class="total-val-light">৳{{ number_format($order->subtotal, 0) }}</span>
+            <div class="total-container">
+                <div class="total-row">
+                    <span class="total-label">Subtotal</span>
+                    <span class="total-val">৳{{ number_format($order->subtotal, 0) }}</span>
                 </div>
-                <div class="total-line">
-                    <span class="total-label-light">Delivery Charge</span>
-                    <span class="total-val-light">৳{{ number_format($order->delivery_charge, 0) }}</span>
+                <div class="total-row">
+                    <span class="total-label">Delivery Charge</span>
+                    <span class="total-val">৳{{ number_format($order->delivery_charge, 0) }}</span>
                 </div>
                 @if($order->discount_amount > 0)
-                <div class="total-line" style="color: #feb2b2;">
-                    <span class="total-label-light">Discount</span>
-                    <span class="total-val-light">-৳{{ number_format($order->discount_amount, 0) }}</span>
+                <div class="total-row" style="color: #fda4af; opacity: 1;">
+                    <span class="total-label">Discount</span>
+                    <span class="total-val">-৳{{ number_format($order->discount_amount, 0) }}</span>
                 </div>
                 @endif
                 <div class="grand-total-row">
-                    <span class="grand-total-label">Total Payable Amount</span>
+                    <span class="grand-total-label">{{ $order->payment_status === 'paid' ? 'Total Amount Paid' : 'Total Payable Amount' }}</span>
                     <span class="grand-total-val">৳{{ number_format($order->total_amount, 2) }}</span>
+                    <span class="vat-badge">Inc. VAT</span>
+                    <div class="clear"></div>
                 </div>
-                <div class="vat-text">Inc. VAT</div>
             </div>
             <div class="clear"></div>
         </div>
 
         <div class="footer">
             <div class="footer-thank">Thank you for your patronage!</div>
-            <div class="footer-tagline">AUTHENTIC FLAVORS • ARTISANAL CRAFT • PURE HERITAGE</div>
-            <div class="footer-legal">COMPUTER GENERATED INVOICE • NO SIGNATURE REQUIRED</div>
+            <div class="footer-tagline">Authentic Flavors • Artisanal Craft • Pure Heritage</div>
+            <div class="footer-legal">Computer Generated Invoice • No Signature Required</div>
         </div>
     </div>
 </body>
