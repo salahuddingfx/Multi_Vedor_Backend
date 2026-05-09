@@ -959,7 +959,9 @@ class AdminController extends BaseController
     public function updateSettings(Request $request, $site_id) {
         $site = Site::findOrFail($site_id);
         $site->update(['settings' => $request->settings]);
-        Cache::forget("site_settings_{$site_id}");
+        
+        $this->clearStorefrontCache($site_id);
+        
         return $this->sendResponse($site->settings, 'Site settings updated.');
     }
 
