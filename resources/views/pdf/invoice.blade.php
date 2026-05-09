@@ -375,9 +375,13 @@
             <td class="bottom-left">
                 <div class="bottom-bar"></div>
                 <div class="bottom-contact">
-                    {{ data_get($order->site, 'settings.support_phone') ?? data_get($order->site, 'settings.contact') ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
-                    {{ data_get($order->site, 'settings.address') ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
-                    {{ data_get($order->site, 'settings.website') ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
+                    @php
+                        $siteSettings = $order->site?->settings ?? [];
+                        $phone = $siteSettings['support_phone'] ?? $siteSettings['contact'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000');
+                        $address = $siteSettings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh');
+                        $website = $siteSettings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com');
+                    @endphp
+                    {{ $phone }} &nbsp;|&nbsp; {{ $address }} &nbsp;|&nbsp; {{ $website }}
                 </div>
             </td>
             <td class="bottom-right">
@@ -451,9 +455,12 @@
                     <div class="invoice-to-label" style="font-size: 13px;">Invoice From:</div>
                     <div class="recipient-name" style="font-size: 14px;">{{ data_get($order->site, 'settings.store_name') ?? $order->site?->name ?? 'Acharu' }}</div>
                     <div class="recipient-address">
-                        {{ data_get($order->site, 'settings.address') ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }}<br>
-                        {{ data_get($order->site, 'settings.support_phone') ?? data_get($order->site, 'settings.contact') ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }}<br>
-                        {{ data_get($order->site, 'settings.store_email') ?? 'support@' . ($order->site?->slug === 'acharu' ? 'acharu.com' : 'tajashutki.com') }}
+                        @php
+                            $email = $siteSettings['store_email'] ?? $siteSettings['email'] ?? 'support@' . ($order->site?->slug === 'acharu' ? 'acharu.com' : 'tajashutki.com');
+                        @endphp
+                        {{ $address }}<br>
+                        {{ $phone }}<br>
+                        {{ $email }}
                     </div>
                 </div>
             </td>
@@ -553,9 +560,7 @@
             <td class="bottom-left">
                 <div class="bottom-bar"></div>
                 <div class="bottom-contact">
-                    {{ data_get($order->site, 'settings.support_phone') ?? data_get($order->site, 'settings.contact') ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
-                    {{ data_get($order->site, 'settings.address') ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
-                    {{ data_get($order->site, 'settings.website') ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
+                    {{ $phone }} &nbsp;|&nbsp; {{ $address }} &nbsp;|&nbsp; {{ $website }}
                 </div>
             </td>
             <td class="bottom-right">
