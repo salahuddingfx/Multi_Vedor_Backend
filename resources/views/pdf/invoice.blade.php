@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4;
-            margin: 0;
+            margin: 0.75in;
         }
         body {
             font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
@@ -32,6 +32,7 @@
                 background: #ffffff;
                 box-shadow: 0 20px 50px rgba(0,0,0,0.1);
                 box-sizing: border-box;
+                padding: 0.75in;
                 position: relative;
             }
             .print-btn {
@@ -50,7 +51,6 @@
         }
 
         .invoice-wrapper {
-            padding: 0.75in;
             position: relative;
         }
 
@@ -132,17 +132,14 @@
 
         /* Info Section */
         .info-section {
-            display: table;
             width: 100%;
             margin-bottom: 40px;
         }
         .info-left {
-            display: table-cell;
             width: 50%;
             vertical-align: top;
         }
         .info-right {
-            display: table-cell;
             width: 50%;
             vertical-align: top;
         }
@@ -167,7 +164,6 @@
         }
 
         .meta-table {
-            float: right;
             border-collapse: collapse;
         }
         .meta-table td {
@@ -221,18 +217,15 @@
 
         /* Footer Section */
         .footer-grid {
-            display: table;
             width: 100%;
             margin-bottom: 60px;
         }
         .footer-left {
-            display: table-cell;
             width: 55%;
             vertical-align: top;
             padding-right: 20px;
         }
         .footer-right {
-            display: table-cell;
             width: 45%;
             vertical-align: top;
         }
@@ -306,14 +299,12 @@
         /* Absolute Bottom */
         .absolute-bottom {
             position: absolute;
-            bottom: 0.75in;
-            left: 0.75in;
-            right: 0.75in;
-            display: table;
+            bottom: 0;
+            left: 0;
+            right: 0;
             width: 100%;
         }
         .bottom-left {
-            display: table-cell;
             width: 60%;
             vertical-align: bottom;
         }
@@ -330,7 +321,6 @@
         }
         
         .bottom-right {
-            display: table-cell;
             width: 40%;
             vertical-align: bottom;
             text-align: right;
@@ -364,16 +354,19 @@
             </div>
         </div>
 
-        <div class="accent-bar-area">
-            <div class="bar-left"></div>
-            <div class="invoice-title-cell">
-                <h2 class="invoice-title">INVOICE</h2>
-            </div>
-            <div class="bar-right"></div>
-        </div>
+        <table style="width: 100%; margin-bottom: 30px; border-collapse: collapse;">
+            <tr>
+                <td style="background: var(--primary); height: 35px; width: 55%;"></td>
+                <td style="padding: 0 20px; vertical-align: middle; white-space: nowrap; width: 1%;">
+                    <h2 class="invoice-title">INVOICE</h2>
+                </td>
+                <td style="background: var(--primary); height: 35px;"></td>
+            </tr>
+        </table>
 
-        <div class="info-section">
-            <div class="info-left">
+        <table class="info-section">
+            <tr>
+            <td class="info-left">
                 <div class="invoice-to-label">Invoice to:</div>
                 <div class="recipient-name">{{ $order->customer_name }}</div>
                 <div class="recipient-address">
@@ -388,9 +381,9 @@
                     {{ $order->customer_notes }}
                 </div>
                 @endif
-            </div>
-            <div class="info-right">
-                <table class="meta-table" style="margin-bottom: 20px;">
+            </td>
+            <td class="info-right">
+                <table align="right" class="meta-table" style="margin-bottom: 20px;">
                     <tr>
                         <td class="meta-label">Invoice#</td>
                         <td class="meta-value">{{ strtoupper($order->tracking_id) }}</td>
@@ -411,8 +404,9 @@
                         {{ $order->site?->settings['store_email'] ?? 'support@' . ($order->site?->slug ?? 'acharu') . '.com' }}
                     </div>
                 </div>
-            </div>
-        </div>
+            </td>
+            </tr>
+        </table>
 
         <table class="items-table">
             <thead>
@@ -439,8 +433,9 @@
             </tbody>
         </table>
 
-        <div class="footer-grid">
-            <div class="footer-left">
+        <table class="footer-grid">
+            <tr>
+            <td class="footer-left">
                 <div class="thank-you-text">Thank you for your business</div>
                 
                 <div class="terms-title">Terms & Conditions</div>
@@ -469,9 +464,9 @@
                     </tr>
                     @endif
                 </table>
-            </div>
+            </td>
             
-            <div class="footer-right">
+            <td class="footer-right">
                 <table class="totals-table">
                     <tr>
                         <td>Sub Total:</td>
@@ -492,22 +487,27 @@
                         <td class="val">৳{{ number_format($order->total_amount, 2) }}</td>
                     </tr>
                 </table>
-            </div>
-        </div>
+            </td>
+            </tr>
+        </table>
 
         <div class="absolute-bottom">
-            <div class="bottom-left">
-                <div class="bottom-bar"></div>
-                <div class="bottom-contact">
-                    {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
-                    {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
-                    {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
-                </div>
-            </div>
-            <div class="bottom-right">
-                <div class="auth-sign-line"></div><br>
-                <span class="auth-sign-text">Authorised Sign</span>
-            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                <td class="bottom-left">
+                    <div class="bottom-bar"></div>
+                    <div class="bottom-contact">
+                        {{ $order->site?->settings['support_phone'] ?? ($order->site?->slug === 'acharu' ? '01700000000' : '01800000000') }} &nbsp;|&nbsp; 
+                        {{ $order->site?->settings['address'] ?? ($order->site?->slug === 'acharu' ? 'Dhaka, Bangladesh' : 'Cox\'s Bazar, Bangladesh') }} &nbsp;|&nbsp; 
+                        {{ $order->site?->settings['website'] ?? ($order->site?->slug === 'acharu' ? 'www.acharu.com' : 'www.tajashutki.com') }}
+                    </div>
+                </td>
+                <td class="bottom-right">
+                    <div class="auth-sign-line"></div><br>
+                    <span class="auth-sign-text">Authorised Sign</span>
+                </td>
+                </tr>
+            </table>
         </div>
 
     </div>
