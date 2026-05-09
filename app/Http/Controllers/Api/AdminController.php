@@ -369,7 +369,7 @@ class AdminController extends BaseController
         $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
         $orders = Order::where('site_id', $siteId)
-            ->with(['items'])
+            ->with(['items', 'site'])
             ->latest()
             ->paginate(50);
         return $this->sendResponse($orders, 'Admin orders retrieved.');
