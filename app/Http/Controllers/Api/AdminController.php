@@ -949,10 +949,11 @@ class AdminController extends BaseController
 
     // Site Settings with Cache
     public function getSettings($site_id) {
-        return Cache::remember("site_settings_{$site_id}", 3600, function() use ($site_id) {
+        $settings = Cache::remember("site_settings_{$site_id}", 3600, function() use ($site_id) {
             $site = Site::findOrFail($site_id);
-            return $this->sendResponse($site->settings, 'Site settings retrieved.');
+            return $site->settings;
         });
+        return $this->sendResponse($settings, 'Site settings retrieved.');
     }
 
     public function updateSettings(Request $request, $site_id) {

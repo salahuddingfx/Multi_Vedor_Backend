@@ -397,7 +397,11 @@
 
         <div class="header-top">
             <div class="logo-box">
-                <h1 class="logo-title">{{ $order->site?->name ?? 'ACHARU' }}</h1>
+                @if(data_get($order->site, 'settings.logo_url'))
+                    <img src="{{ data_get($order->site, 'settings.logo_url') }}" alt="Logo" style="max-height: 45px; display: block; margin-bottom: 5px;">
+                @else
+                    <h1 class="logo-title">{{ $order->site?->name ?? 'ACHARU' }}</h1>
+                @endif
                 <div class="logo-tagline">{{ $order->site?->slug === 'acharu' ? 'Premium Artisanal Collection' : 'Freshness Delivered Daily' }}</div>
             </div>
         </div>
