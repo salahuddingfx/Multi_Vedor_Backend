@@ -318,17 +318,20 @@
         /* Footer logic */
         .print-only-footer {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            width: 100%;
+            bottom: 0.75in;
+            left: 0.75in;
+            right: 0.75in;
+            width: calc(100% - 1.5in);
             display: block;
             z-index: 9999;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
         }
         .screen-only-footer {
             display: block;
             z-index: 50;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
         }
         .bottom-left {
             width: 60%;
@@ -555,7 +558,7 @@
     @if(!isset($is_pdf) || !$is_pdf)
     <!-- Footer for Screen Preview -->
     <div class="screen-only-footer">
-        <table style="width: 100%; border-collapse: collapse;">
+        <table style="width: 100%; border-collapse: collapse; background-color: #fff;">
             <tr>
             <td class="bottom-left">
                 <div class="bottom-bar"></div>
