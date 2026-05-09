@@ -47,14 +47,12 @@
             }
             .print-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
             
-            .print-only-footer { display: none !important; }
             .screen-only-footer { 
-                display: block !important;
-                position: absolute !important;
-                bottom: 0.75in !important;
-                left: 0.75in !important;
-                right: 0.75in !important;
-                width: calc(100% - 1.5in) !important;
+                position: absolute;
+                bottom: 0.75in;
+                left: 0.75in;
+                right: 0.75in;
+                width: calc(100% - 1.5in);
             }
         }
 
@@ -361,6 +359,7 @@
 <body class="theme-{{ $order->site?->slug ?? 'unspecified' }}">
     <button class="print-btn" onclick="window.print()">Print Invoice</button>
 
+    @if(isset($is_pdf) && $is_pdf)
     <footer class="print-only-footer">
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
@@ -379,6 +378,7 @@
             </tr>
         </table>
     </footer>
+    @endif
 
     <main class="invoice-wrapper">
 
