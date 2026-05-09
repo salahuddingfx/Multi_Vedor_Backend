@@ -146,7 +146,14 @@ class AdminController extends BaseController
         $slug = Str::slug($request->name);
         $existingSlug = Product::where('site_id', $validated['site_id'])->where('slug', $slug)->exists();
         if ($existingSlug) {
-            $slug = $slug . '-' . time();
+            $category = Category::find($validated['category_id']);
+            $categoryName = $category ? Str::slug($category->name) : 'p';
+            $slug = $slug . '-' . $categoryName;
+            
+            // If still exists (same name in same category), add random suffix
+            if (Product::where('site_id', $validated['site_id'])->where('slug', $slug)->exists()) {
+                $slug = $slug . '-' . Str::random(5);
+            }
         }
         $validated['slug'] = $slug;
         $product = Product::create($validated);
@@ -211,7 +218,14 @@ class AdminController extends BaseController
             $slug = Str::slug($validated['name']);
             $existingSlug = Product::where('site_id', $product->site_id)->where('slug', $slug)->where('id', '!=', $id)->exists();
             if ($existingSlug) {
-                $slug = $slug . '-' . time();
+                $categoryId = $validated['category_id'] ?? $product->category_id;
+                $category = Category::find($categoryId);
+                $categoryName = $category ? Str::slug($category->name) : 'p';
+                $slug = $slug . '-' . $categoryName;
+                
+                if (Product::where('site_id', $product->site_id)->where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                    $slug = $slug . '-' . Str::random(5);
+                }
             }
             $validated['slug'] = $slug;
         }
