@@ -15,7 +15,7 @@
             color: #1e293b;
             font-size: 11px; /* Image uses small clean font */
             line-height: 1.5;
-            background: #e2e8f0;
+            background: #f1f5f9;
         }
 
         /* Site Specific Themes */
@@ -542,7 +542,7 @@
                     </tr>
                     @endif
                     <tr class="total-highlight">
-                        <td>Total:</td>
+                        <td>{{ $order->payment_status === 'paid' ? 'Total Paid Amount:' : 'Total Payable Amount:' }}</td>
                         <td class="val">৳{{ number_format($order->total_amount, 2) }}</td>
                     </tr>
                 </table>
