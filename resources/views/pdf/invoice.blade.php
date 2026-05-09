@@ -236,7 +236,7 @@
         .items-table th.center { text-align: center; }
         
         .items-table td {
-            padding: 15px;
+            padding: 8px 15px;
             border-left: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
             border-bottom: 1px solid #e2e8f0;
