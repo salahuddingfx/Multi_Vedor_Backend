@@ -42,6 +42,14 @@
                 z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             }
             .print-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+            
+            .absolute-bottom {
+                position: absolute !important;
+                bottom: 0.75in !important;
+                left: 0.75in !important;
+                right: 0.75in !important;
+                width: calc(100% - 1.5in) !important;
+            }
         }
 
         @media print {
@@ -298,7 +306,7 @@
 
         /* Absolute Bottom */
         .absolute-bottom {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
