@@ -143,16 +143,26 @@ class AdminController extends BaseController
 
         $validated = $validator->validated();
         
-        $slug = Str::slug($request->name);
-        $existingSlug = Product::where('site_id', $validated['site_id'])->where('slug', $slug)->exists();
-        if ($existingSlug) {
-            $category = Category::find($validated['category_id']);
-            $categoryName = $category ? Str::slug($category->name) : 'p';
-            $slug = $slug . '-' . $categoryName;
+        $baseSlug = Str::slug($request->name);
+        $slug = $baseSlug;
+        
+        $count = 1;
+        while (Product::where('site_id', $validated['site_id'])->where('slug', $slug)->exists()) {
+            if ($count === 1) {
+                // First attempt: try adding category name
+                $category = Category::find($validated['category_id']);
+                $categoryName = $category ? Str::slug($category->name) : 'p';
+                $slug = $baseSlug . '-' . $categoryName;
+            } else {
+                // Subsequent attempts: add number
+                $slug = $baseSlug . '-' . $count;
+            }
+            $count++;
             
-            // If still exists (same name in same category), add random suffix
-            if (Product::where('site_id', $validated['site_id'])->where('slug', $slug)->exists()) {
-                $slug = $slug . '-' . Str::random(5);
+            // Safety break if it loops too much (unlikely)
+            if ($count > 10) {
+                $slug = $baseSlug . '-' . time();
+                break;
             }
         }
         $validated['slug'] = $slug;
@@ -215,16 +225,24 @@ class AdminController extends BaseController
         $validated = $validator->validated();
 
         if (isset($validated['name'])) {
-            $slug = Str::slug($validated['name']);
-            $existingSlug = Product::where('site_id', $product->site_id)->where('slug', $slug)->where('id', '!=', $id)->exists();
-            if ($existingSlug) {
-                $categoryId = $validated['category_id'] ?? $product->category_id;
-                $category = Category::find($categoryId);
-                $categoryName = $category ? Str::slug($category->name) : 'p';
-                $slug = $slug . '-' . $categoryName;
+            $baseSlug = Str::slug($validated['name']);
+            $slug = $baseSlug;
+            
+            $count = 1;
+            while (Product::where('site_id', $product->site_id)->where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                if ($count === 1) {
+                    $categoryId = $validated['category_id'] ?? $product->category_id;
+                    $category = Category::find($categoryId);
+                    $categoryName = $category ? Str::slug($category->name) : 'p';
+                    $slug = $baseSlug . '-' . $categoryName;
+                } else {
+                    $slug = $baseSlug . '-' . $count;
+                }
+                $count++;
                 
-                if (Product::where('site_id', $product->site_id)->where('slug', $slug)->where('id', '!=', $id)->exists()) {
-                    $slug = $slug . '-' . Str::random(5);
+                if ($count > 10) {
+                    $slug = $baseSlug . '-' . time();
+                    break;
                 }
             }
             $validated['slug'] = $slug;
