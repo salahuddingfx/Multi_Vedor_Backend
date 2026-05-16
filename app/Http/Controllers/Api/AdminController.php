@@ -28,11 +28,14 @@ class AdminController extends BaseController
 
     public function login(Request $request) {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where(function($query) use ($request) {
+            $query->where('email', $request->email)
+                  ->orWhere('username', $request->email);
+        })->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return $this->sendError('Invalid credentials.', [], 401);
@@ -646,6 +649,7 @@ class AdminController extends BaseController
     public function storeUser(Request $request) {
         $validated = $request->validate([
             'name' => 'required',
+            'username' => 'required|string|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
             'role' => 'required',
@@ -667,12 +671,13 @@ class AdminController extends BaseController
         $user = User::findOrFail($id);
         $validated = $request->validate([
             'name' => 'sometimes|required',
+            'username' => 'sometimes|required|string|unique:users,username,' . $user->id,
             'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
             'role' => 'sometimes|required',
             'image' => 'nullable|image|max:2048'
         ]);
 
-        $user->update($request->only(['name', 'email', 'role']));
+        $user->update($request->only(['name', 'username', 'email', 'role']));
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('avatars', 'public');
