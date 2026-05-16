@@ -52,6 +52,7 @@ class AdminController extends BaseController
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'username' => $user->username,
                 'email' => $user->email,
                 'role' => $user->role,
                 'image_path' => $user->image_path
