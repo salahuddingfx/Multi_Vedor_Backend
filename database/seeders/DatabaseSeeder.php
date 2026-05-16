@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         // 1. Create Multiple Admin Users
         User::create([
             'name' => 'Main Admin',
+            'username' => 'admin',
             'email' => 'admin@gmail.com',
             'password' => bcrypt('admin123'),
             'role' => 'admin'
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'name' => 'Support Admin',
+            'username' => 'support',
             'email' => 'support@gmail.com',
             'password' => bcrypt('support123'),
             'role' => 'admin'
