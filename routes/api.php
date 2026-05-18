@@ -69,7 +69,7 @@ Route::prefix('admin')->middleware('throttle:admin')->group(function () {
     // Categories
     Route::get('/categories', [AdminController::class, 'getCategories']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
-    Route::post('/categories/{id}', [AdminController::class, 'updateCategory']); // For multipart updates
+    Route::put('/categories/{id}', [AdminController::class, 'updateCategory']);
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
     
     // Orders
