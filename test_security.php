@@ -12,10 +12,10 @@ $settings = $site->settings;
 $settings['security'] = [
     'inactivity_timeout_enabled' => true,
     'inactivity_timeout' => 15,
-    'working_hours_enabled' => true,
+    'working_hours_enabled' => false,
     'working_hours_start' => '09:00',
     'working_hours_end' => '18:00',
-    'working_days' => [] // Empty array: no days allowed!
+    'working_days' => [0, 1, 2, 3, 4, 5, 6]
 ];
 $site->update(['settings' => $settings]);
 
@@ -23,4 +23,4 @@ $site->update(['settings' => $settings]);
 $siteId = 1;
 \Illuminate\Support\Facades\Cache::forget("site_settings_{$siteId}");
 
-echo "Database updated. Working hours restriction enabled for all days.\n";
+echo "Database restored. Working hours restriction disabled.\n";
