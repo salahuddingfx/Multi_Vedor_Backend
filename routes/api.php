@@ -55,7 +55,7 @@ Route::prefix('admin')->middleware('throttle:admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login'])->middleware('throttle:login');
     
     // Protected Admin Routes
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'working_hours'])->group(function () {
         Route::get('/me', [AdminController::class, 'me']);
         // Stats
         Route::get('/stats', [AdminController::class, 'getStats']);

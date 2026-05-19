@@ -32,7 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'working_hours' => \App\Http\Middleware\CheckWorkingHours::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

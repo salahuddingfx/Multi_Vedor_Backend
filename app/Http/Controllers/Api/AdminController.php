@@ -45,6 +45,35 @@ class AdminController extends BaseController
             return $this->sendError('Unauthorized access.', [], 403);
         }
 
+        // Check working hours
+        $siteContext = $request->header('X-Site-Context', 'acharu');
+        $siteId = ($siteContext === 'tajashutki') ? 2 : 1;
+
+        $site = Site::find($siteId);
+        if ($site && isset($site->settings)) {
+            $settings = $site->settings;
+            $security = $settings['security'] ?? null;
+
+            if ($security && ($security['working_hours_enabled'] ?? false)) {
+                $now = \Illuminate\Support\Carbon::now('Asia/Dhaka');
+                $currentDayOfWeek = (int) $now->format('w');
+                $currentTimeStr = $now->format('H:i');
+
+                $workingDays = array_map('intval', $security['working_days'] ?? [0, 1, 2, 3, 4, 5, 6]);
+
+                if (!in_array($currentDayOfWeek, $workingDays)) {
+                    return $this->sendError('Access denied. Today is not a working day.', [], 401);
+                }
+
+                $startTime = $security['working_hours_start'] ?? '09:00';
+                $endTime = $security['working_hours_end'] ?? '18:00';
+
+                if ($currentTimeStr < $startTime || $currentTimeStr > $endTime) {
+                    return $this->sendError('Access denied. Outside of admin panel working hours.', [], 401);
+                }
+            }
+        }
+
         $token = $user->createToken('admin_token')->plainTextToken;
 
         return $this->sendResponse([
