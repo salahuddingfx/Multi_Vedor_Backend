@@ -35,6 +35,7 @@ class ProductController extends BaseController
         }
 
         $products = $query->paginate(12);
+        $products->getCollection()->each->makeHidden(['cost_items']);
         return $this->sendResponse($products, 'Products retrieved successfully.');
     }
 
@@ -58,6 +59,7 @@ class ProductController extends BaseController
             return $this->sendError('Product not found.');
         }
 
+        $product->makeHidden(['cost_items']);
         return $this->sendResponse($product, 'Product retrieved successfully.');
     }
 }

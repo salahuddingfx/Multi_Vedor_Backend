@@ -69,4 +69,82 @@ class SEOController extends BaseController
             'Content-Type' => 'application/xml',
         ]);
     }
+
+    public function showProductSEO($site_slug, $slug)
+    {
+        $site = Site::where('slug', $site_slug)->first();
+        if (!$site) {
+            abort(404, 'Site not found');
+        }
+
+        $product = Product::where('site_id', $site->id)
+            ->where('slug', $slug)
+            ->with(['images', 'category'])
+            ->first();
+
+        if (!$product) {
+            abort(404, 'Product not found');
+        }
+
+        // Determine storefront base URL
+        if (app()->environment('local')) {
+            $storefrontBase = $site_slug === 'acharu' 
+                ? env('ACHARU_URL', 'http://localhost:5173') 
+                : env('TAJASHUTKI_URL', 'http://localhost:5174');
+        } else {
+            $storefrontBase = $site_slug === 'acharu' 
+                ? env('ACHARU_URL', 'https://acharu.com') 
+                : env('TAJASHUTKI_URL', 'https://tajashutki.com');
+        }
+
+        $storefrontUrl = rtrim($storefrontBase, '/') . '/product/' . $product->slug;
+
+        // Image URL mapping
+        $primaryImage = $product->images->where('is_primary', true)->first();
+        if (!$primaryImage) {
+            $primaryImage = $product->images->first();
+        }
+
+        $imageUrl = '';
+        if ($primaryImage) {
+            $imageUrl = $primaryImage->image_path;
+        } else {
+            // Fallback default image or storefront logo/favicon
+            $imageUrl = $site_slug === 'acharu'
+                ? 'https://images.unsplash.com/photo-1589135233689-d58620025983?q=80&w=800'
+                : 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=800';
+        }
+
+        // Handle relative image paths
+        if ($imageUrl && !preg_match("~^(?:f|ht)tps?://~i", $imageUrl)) {
+            $imageUrl = url($imageUrl);
+        }
+
+        // Metadata extraction
+        $title = ($product->name ?? 'Product') . ' | ' . ($site->name ?? 'Store');
+        // Fallback or sub description limits
+        $description = $product->description ?? 'Check out this amazing product on our store.';
+        // Strip tags and trim
+        $description = strip_tags($description);
+        if (strlen($description) > 160) {
+            $description = mb_substr($description, 0, 157) . '...';
+        }
+
+        $price = $product->price ?? '0';
+        $siteName = $site->name ?? 'Store';
+
+        // Canonical URL is the crawler URL itself
+        $canonicalUrl = url()->current();
+
+        return view('seo_preview', [
+            'title' => $title,
+            'description' => $description,
+            'image_url' => $imageUrl,
+            'canonical_url' => $canonicalUrl,
+            'storefront_url' => $storefrontUrl,
+            'price' => $price,
+            'site_name' => $siteName
+        ]);
+    }
 }
+

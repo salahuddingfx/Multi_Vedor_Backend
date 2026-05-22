@@ -149,10 +149,12 @@ class AdminController extends BaseController
         $products = Product::where('site_id', $siteId)
             ->with(['category', 'site', 'images', 'variations'])
             ->paginate(20);
+        $products->getCollection()->each->makeVisible(['cost_items']);
         return $this->sendResponse($products, 'Admin products retrieved.');
     }
 
     public function storeProduct(Request $request) {
+        $this->mergeCostItems($request);
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'site_id' => 'required|exists:sites,id',
             'category_id' => 'required|exists:categories,id',
@@ -161,12 +163,15 @@ class AdminController extends BaseController
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'cost_items' => 'nullable|array',
+            'cost_items.*.label' => 'required_with:cost_items|string|max:100',
+            'cost_items.*.amount' => 'required_with:cost_items|numeric|min:0',
             'weight' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'name_bn' => 'nullable|string|max:255',
             'description_bn' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'is_featured' => 'sometimes|boolean'
         ]);
 
@@ -175,6 +180,9 @@ class AdminController extends BaseController
         }
 
         $validated = $validator->validated();
+        if ($request->has('cost_items')) {
+            $validated['cost_items'] = $this->sanitizeCostItems($request->input('cost_items'));
+        }
         
         $baseSlug = Str::slug($request->name);
         $slug = $baseSlug;
@@ -230,11 +238,13 @@ class AdminController extends BaseController
         // Clear product caches
         $this->clearStorefrontCache($product->site_id);
 
-        return $this->sendResponse($product->load('images'), 'Product created with images.');
+        $product->load('images')->makeVisible(['cost_items']);
+        return $this->sendResponse($product, 'Product created with images.');
     }
 
     public function updateProduct(Request $request, $id) {
         $product = Product::findOrFail($id);
+        $this->mergeCostItems($request);
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'category_id' => 'sometimes|required|exists:categories,id',
             'name' => 'sometimes|required|string|max:255',
@@ -242,12 +252,15 @@ class AdminController extends BaseController
             'price' => 'sometimes|required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'cost_items' => 'sometimes|array',
+            'cost_items.*.label' => 'required_with:cost_items|string|max:100',
+            'cost_items.*.amount' => 'required_with:cost_items|numeric|min:0',
             'weight' => 'sometimes|required|numeric|min:0',
             'stock' => 'sometimes|required|integer|min:0',
             'description' => 'nullable|string',
             'name_bn' => 'nullable|string|max:255',
             'description_bn' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'is_featured' => 'sometimes|boolean'
         ]);
 
@@ -256,6 +269,9 @@ class AdminController extends BaseController
         }
 
         $validated = $validator->validated();
+        if ($request->has('cost_items')) {
+            $validated['cost_items'] = $this->sanitizeCostItems($request->input('cost_items'));
+        }
 
         if (isset($validated['name'])) {
             $baseSlug = Str::slug($validated['name']);
@@ -370,7 +386,8 @@ class AdminController extends BaseController
 
         $this->clearStorefrontCache($product->site_id);
 
-        return $this->sendResponse($product->load('images'), 'Product updated.');
+        $product->load('images')->makeVisible(['cost_items']);
+        return $this->sendResponse($product, 'Product updated.');
     }
 
     public function deleteProduct($id) {
@@ -872,6 +889,54 @@ class AdminController extends BaseController
                     ->get();
             }
 
+            // 8.5 Order Cost Rollup (per order, from product cost items)
+            $orderCostRows = DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->whereBetween('orders.created_at', [$startDate, $endDate]);
+            if ($siteId) {
+                $orderCostRows->where('orders.site_id', $siteId);
+            }
+            $orderCostRows = $orderCostRows->select([
+                'order_items.order_id',
+                'order_items.quantity',
+                'products.cost_items',
+            ])->get();
+
+            $orderCostTotals = [];
+            $orderCostBreakdown = [];
+            foreach ($orderCostRows as $row) {
+                $items = [];
+                if (!empty($row->cost_items)) {
+                    $decoded = json_decode($row->cost_items, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $items = $decoded;
+                    }
+                }
+
+                foreach ($items as $item) {
+                    $label = trim($item['label'] ?? '');
+                    $amount = $item['amount'] ?? null;
+                    if ($label === '' || !is_numeric($amount)) {
+                        continue;
+                    }
+
+                    $amount = (float) $amount;
+                    if ($amount < 0) {
+                        continue;
+                    }
+
+                    $total = $amount * (int) $row->quantity;
+                    $orderId = $row->order_id;
+
+                    $orderCostTotals[$orderId] = ($orderCostTotals[$orderId] ?? 0) + $total;
+                    if (!isset($orderCostBreakdown[$orderId])) {
+                        $orderCostBreakdown[$orderId] = [];
+                    }
+                    $orderCostBreakdown[$orderId][$label] = ($orderCostBreakdown[$orderId][$label] ?? 0) + $total;
+                }
+            }
+
             // 9. Detailed Activity Timeline (Master Report)
             $ordersTimeline = DB::table('orders')
                 ->whereBetween('created_at', [$startDate, $endDate]);
@@ -886,6 +951,11 @@ class AdminController extends BaseController
                 'status as detail',
                 'created_at'
             ])->get();
+            $ordersTimeline = $ordersTimeline->map(function($order) use ($orderCostTotals, $orderCostBreakdown) {
+                $order->cost_total = (float) ($orderCostTotals[$order->id] ?? 0);
+                $order->cost_breakdown = $orderCostBreakdown[$order->id] ?? [];
+                return $order;
+            });
 
             $returnsTimeline = DB::table('product_returns')
                 ->whereBetween('return_date', [$startDate, $endDate]);
@@ -900,6 +970,11 @@ class AdminController extends BaseController
                 'reason as detail',
                 'return_date as created_at'
             ])->get();
+            $returnsTimeline = $returnsTimeline->map(function($return) {
+                $return->cost_total = 0;
+                $return->cost_breakdown = [];
+                return $return;
+            });
 
             $timeline = $ordersTimeline->concat($returnsTimeline)->sortByDesc('created_at')->values();
 
@@ -1108,6 +1183,49 @@ class AdminController extends BaseController
         if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
         }
+    }
+
+    private function mergeCostItems(Request $request): void
+    {
+        if (!$request->has('cost_items')) {
+            return;
+        }
+
+        $raw = $request->input('cost_items');
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $request->merge(['cost_items' => $decoded]);
+            }
+        }
+    }
+
+    private function sanitizeCostItems($items): array
+    {
+        if (!is_array($items)) {
+            return [];
+        }
+
+        $cleaned = [];
+        foreach ($items as $item) {
+            $label = trim($item['label'] ?? '');
+            $amount = $item['amount'] ?? null;
+            if ($label === '' || !is_numeric($amount)) {
+                continue;
+            }
+
+            $amount = (float) $amount;
+            if ($amount < 0) {
+                continue;
+            }
+
+            $cleaned[] = [
+                'label' => $label,
+                'amount' => $amount,
+            ];
+        }
+
+        return $cleaned;
     }
 
     public function uploadSettingsMedia(Request $request) {

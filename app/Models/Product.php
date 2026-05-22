@@ -10,7 +10,15 @@ class Product extends Model
 {
     protected $fillable = [
         'site_id', 'category_id', 'name', 'name_bn', 'sku', 'slug', 'description', 'description_bn',
-        'price', 'original_price', 'discount_percentage', 'weight', 'stock', 'is_featured', 'sales_count'
+        'price', 'original_price', 'discount_percentage', 'cost_items', 'weight', 'stock', 'is_featured', 'sales_count'
+    ];
+
+    protected $casts = [
+        'cost_items' => 'array',
+    ];
+
+    protected $hidden = [
+        'cost_items',
     ];
 
     public function site(): BelongsTo { return $this->belongsTo(Site::class); }

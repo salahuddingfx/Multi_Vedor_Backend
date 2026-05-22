@@ -1,11 +1,14 @@
 <?php
 
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\SEOController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return response()->json(['message' => 'Multi-Vendor API is running.']);
 });
+
+Route::get('/seo/{site}/product/{slug}', [SEOController::class, 'showProductSEO'])->name('product.seo');
 
 Route::get('/orders/{id}/invoice', [AdminController::class, 'generateInvoice'])->name('admin.invoice');
 Route::get('/orders/{id}/invoice/download', [AdminController::class, 'downloadInvoice'])->name('admin.invoice.download');
