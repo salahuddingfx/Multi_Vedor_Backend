@@ -63,60 +63,64 @@ Route::prefix('admin')->middleware('throttle:admin')->group(function () {
     // Products
     Route::get('/products', [AdminController::class, 'getProducts']);
     Route::post('/products', [AdminController::class, 'storeProduct']);
-    Route::put('/products/{id}', [AdminController::class, 'updateProduct']);
-    Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);
+    Route::post('/products/{id}/update', [AdminController::class, 'updateProduct']);
+    Route::post('/products/{id}/delete', [AdminController::class, 'deleteProduct']);
     
     // Categories
     Route::get('/categories', [AdminController::class, 'getCategories']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
-    Route::put('/categories/{id}', [AdminController::class, 'updateCategory']);
-    Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
+    Route::post('/categories/{id}/update', [AdminController::class, 'updateCategory']);
+    Route::post('/categories/{id}/delete', [AdminController::class, 'deleteCategory']);
     
     // Orders
     Route::get('/orders', [AdminController::class, 'getOrders']);
     Route::post('/inventory/return', [AdminController::class, 'recordReturn']);
     Route::get('/inventory/returns', [AdminController::class, 'getReturns']);
     Route::get('/sales/stats', [AdminController::class, 'getSalesStats']);
-    Route::patch('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
-    Route::put('/orders/{id}/payment-status', [AdminController::class, 'updatePaymentStatus']);
-    Route::put('/orders/{id}', [AdminController::class, 'updateOrder']);
-    Route::delete('/orders/{id}', [AdminController::class, 'deleteOrder']);
+    Route::post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
+    Route::post('/orders/{id}/payment-status', [AdminController::class, 'updatePaymentStatus']);
+    Route::post('/orders/{id}/update', [AdminController::class, 'updateOrder']);
+    Route::post('/orders/{id}/delete', [AdminController::class, 'deleteOrder']);
     
     // Hero Slides
     Route::get('/hero-slides', [AdminController::class, 'getHeroSlides']);
     Route::post('/hero-slides', [AdminController::class, 'storeHeroSlide']);
     Route::post('/hero-slides/{id}', [AdminController::class, 'updateHeroSlide']); // Use POST for multipart/form-data update
-    Route::delete('/hero-slides/{id}', [AdminController::class, 'deleteHeroSlide']);
+    Route::post('/hero-slides/{id}/delete', [AdminController::class, 'deleteHeroSlide']);
     
     
     // Site Settings
     Route::get('/sites/{id}/settings', [AdminController::class, 'getSettings']);
-    Route::put('/sites/{id}/settings', [AdminController::class, 'updateSettings']);
+    Route::post('/sites/{id}/settings/update', [AdminController::class, 'updateSettings']);
     Route::post('/settings/upload', [AdminController::class, 'uploadSettingsMedia']);
 
     // Contact Messages
     Route::get('/messages', [AdminController::class, 'getMessages']);
-    Route::put('/messages/{id}/read', [AdminController::class, 'markMessageRead']);
+    Route::post('/messages/{id}/read', [AdminController::class, 'markMessageRead']);
 
     // Reviews
     Route::get('/reviews', [ReviewController::class, 'getAdminReviews']);
-    Route::put('/reviews/{id}', [ReviewController::class, 'updateAdminReview']);
-    Route::delete('/reviews/{id}', [ReviewController::class, 'deleteAdminReview']);
+    Route::post('/reviews/{id}/update', [ReviewController::class, 'updateAdminReview']);
+    Route::post('/reviews/{id}/delete', [ReviewController::class, 'deleteAdminReview']);
 
     // Admin User & Customer Management
     Route::get('/users', [AdminController::class, 'getUsers']);
     Route::post('/users', [AdminController::class, 'storeUser']);
-    Route::put('/users/{id}', [AdminController::class, 'updateUser']);
-    Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+    Route::post('/users/{id}/update', [AdminController::class, 'updateUser']);
+    Route::post('/users/{id}/delete', [AdminController::class, 'deleteUser']);
     Route::get('/customers', [AdminController::class, 'getCustomers']);
 
     // Coupons
-    Route::apiResource('coupons', CouponController::class);
+    Route::get('/coupons', [CouponController::class, 'index']);
+    Route::post('/coupons', [CouponController::class, 'store']);
+    Route::get('/coupons/{coupon}', [CouponController::class, 'show']);
+    Route::post('/coupons/{coupon}/update', [CouponController::class, 'update']);
+    Route::post('/coupons/{coupon}/delete', [CouponController::class, 'destroy']);
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::put('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::post('/notifications/{id}/delete', [NotificationController::class, 'destroy']);
     });
 });
