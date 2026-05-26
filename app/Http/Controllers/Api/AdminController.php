@@ -393,42 +393,12 @@ class AdminController extends BaseController
     public function deleteProduct($id) {
         $product = Product::findOrFail($id);
         
-        // Check if product is in any orders
-        $hasOrders = DB::table('order_items')->where('product_id', $id)->exists();
-        if ($hasOrders) {
-            return $this->sendError('This product cannot be deleted because it is part of existing orders. You can set its stock to 0 instead.', [], 400);
-        }
-
         try {
-            DB::beginTransaction();
-
-            // Delete associated variations
-            $product->variations()->delete();
-
-            // Delete associated reviews
-            $product->reviews()->delete();
-
-            // Delete associated images
-            foreach($product->images as $oldImg) {
-                $this->deleteFileFromPath($oldImg->image_path);
-                $oldImg->delete();
-            }
-            
             $siteId = $product->site_id;
-            $product->delete();
-
-            DB::commit();
-
+            $product->delete(); // Performs soft delete, preserving order history
             $this->clearStorefrontCache($siteId);
             return $this->sendResponse(null, 'Product deleted successfully.');
-        } catch (\Illuminate\Database\QueryException $e) {
-            DB::rollBack();
-            if ($e->getCode() === '23000') {
-                return $this->sendError('This product cannot be deleted because it is referenced by other records (e.g. orders, reviews).', [], 400);
-            }
-            return $this->sendError('Database error: ' . $e->getMessage(), [], 500);
         } catch (\Exception $e) {
-            DB::rollBack();
             return $this->sendError('Failed to delete product: ' . $e->getMessage(), [], 500);
         }
     }

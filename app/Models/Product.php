@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'site_id', 'category_id', 'name', 'name_bn', 'sku', 'slug', 'description', 'description_bn',
         'price', 'original_price', 'discount_percentage', 'cost_items', 'weight', 'stock', 'is_featured', 'sales_count'
