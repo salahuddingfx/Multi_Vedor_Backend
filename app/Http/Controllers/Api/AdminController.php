@@ -392,13 +392,45 @@ class AdminController extends BaseController
 
     public function deleteProduct($id) {
         $product = Product::findOrFail($id);
-        foreach($product->images as $oldImg) {
-            $this->deleteFileFromPath($oldImg->image_path);
+        
+        // Check if product is in any orders
+        $hasOrders = DB::table('order_items')->where('product_id', $id)->exists();
+        if ($hasOrders) {
+            return $this->sendError('This product cannot be deleted because it is part of existing orders. You can set its stock to 0 instead.', [], 400);
         }
-        $siteId = $product->site_id;
-        $product->delete();
-        $this->clearStorefrontCache($siteId);
-        return $this->sendResponse(null, 'Product deleted.');
+
+        try {
+            DB::beginTransaction();
+
+            // Delete associated variations
+            $product->variations()->delete();
+
+            // Delete associated reviews
+            $product->reviews()->delete();
+
+            // Delete associated images
+            foreach($product->images as $oldImg) {
+                $this->deleteFileFromPath($oldImg->image_path);
+                $oldImg->delete();
+            }
+            
+            $siteId = $product->site_id;
+            $product->delete();
+
+            DB::commit();
+
+            $this->clearStorefrontCache($siteId);
+            return $this->sendResponse(null, 'Product deleted successfully.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+            if ($e->getCode() === '23000') {
+                return $this->sendError('This product cannot be deleted because it is referenced by other records (e.g. orders, reviews).', [], 400);
+            }
+            return $this->sendError('Database error: ' . $e->getMessage(), [], 500);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Failed to delete product: ' . $e->getMessage(), [], 500);
+        }
     }
 
     // Category CRUD
@@ -445,10 +477,27 @@ class AdminController extends BaseController
 
     public function deleteCategory($id) {
         $category = Category::findOrFail($id);
-        $siteId = $category->site_id;
-        $category->delete();
-        $this->clearStorefrontCache($siteId);
-        return $this->sendResponse(null, 'Category deleted.');
+        
+        // Check if there are products in this category
+        $hasProducts = DB::table('products')->where('category_id', $id)->exists();
+        if ($hasProducts) {
+            return $this->sendError('This category cannot be deleted because it contains products. Move the products to another category first.', [], 400);
+        }
+        
+        // Check if it has child categories
+        $hasChildren = DB::table('categories')->where('parent_id', $id)->exists();
+        if ($hasChildren) {
+            return $this->sendError('This category cannot be deleted because it has subcategories. Delete or move the subcategories first.', [], 400);
+        }
+
+        try {
+            $siteId = $category->site_id;
+            $category->delete();
+            $this->clearStorefrontCache($siteId);
+            return $this->sendResponse(null, 'Category deleted successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError('Failed to delete category: ' . $e->getMessage(), [], 500);
+        }
     }
 
     // Order Management
@@ -578,27 +627,39 @@ class AdminController extends BaseController
     public function deleteOrder($id) {
         $order = Order::findOrFail($id);
         
-        // If order is active (not cancelled/returned), restore stock on delete
-        $restorativeStatuses = ['cancelled', 'returned'];
-        if (!in_array($order->status, $restorativeStatuses)) {
-            foreach ($order->items as $item) {
-                $prod = Product::find($item->product_id);
-                if ($prod) {
-                    if ($item->variation_id && $item->variation_id !== 'base') {
-                        $variation = $prod->variations()->find($item->variation_id);
-                        if ($variation) {
-                            $variation->increment('stock', $item->quantity);
+        try {
+            DB::beginTransaction();
+            // If order is active (not cancelled/returned), restore stock on delete
+            $restorativeStatuses = ['cancelled', 'returned'];
+            if (!in_array($order->status, $restorativeStatuses)) {
+                foreach ($order->items as $item) {
+                    $prod = Product::find($item->product_id);
+                    if ($prod) {
+                        if ($item->variation_id && $item->variation_id !== 'base') {
+                            $variation = $prod->variations()->find($item->variation_id);
+                            if ($variation) {
+                                $variation->increment('stock', $item->quantity);
+                            }
+                        } else {
+                            $prod->increment('stock', $item->quantity);
                         }
-                    } else {
-                        $prod->increment('stock', $item->quantity);
+                        $prod->decrement('sales_count', $item->quantity);
                     }
-                    $prod->decrement('sales_count', $item->quantity);
                 }
             }
-        }
 
-        $order->delete();
-        return $this->sendResponse(null, 'Order deleted successfully and stock restored.');
+            // Delete associated items explicitly if cascade is not set
+            $order->items()->delete();
+            // Delete coupon usages associated with order
+            CouponUsage::where('order_id', $order->id)->delete();
+
+            $order->delete();
+            DB::commit();
+            return $this->sendResponse(null, 'Order deleted successfully and stock restored.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Failed to delete order: ' . $e->getMessage(), [], 500);
+        }
     }
 
     // User Management (Admins)
@@ -740,10 +801,18 @@ class AdminController extends BaseController
     public function deleteUser($id) {
         $user = User::findOrFail($id);
         if ($user->id === Auth::id()) {
-            return $this->sendError('You cannot delete yourself.');
+            return $this->sendError('You cannot delete yourself.', [], 400);
         }
-        $user->delete();
-        return $this->sendResponse(null, 'User deleted.');
+        
+        try {
+            $user->delete();
+            return $this->sendResponse(null, 'User deleted.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return $this->sendError('This user cannot be deleted because they have associated action records (e.g. logs). You can change their password or de-authorize them instead.', [], 400);
+            }
+            return $this->sendError('Failed to delete user: ' . $e->getMessage(), [], 500);
+        }
     }
 
     // Contact Messages
