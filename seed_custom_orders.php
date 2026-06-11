@@ -21,8 +21,8 @@ if ($products->isEmpty()) {
 
 echo "Found " . $products->count() . " products.\n";
 
-$statuses = ['pending', 'processing', 'completed', 'delivered', 'cancelled', 'returned'];
-$paymentStatuses = ['pending', 'paid', 'failed'];
+$statuses = ['placed', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'returned'];
+$paymentStatuses = ['unpaid', 'paid'];
 $locations = ['dhaka', 'outside'];
 
 // Dates configuration (Current time is June 11, 2026)
@@ -78,7 +78,7 @@ foreach ($dates as $period => $periodDates) {
                 $status = 'delivered';
             }
             
-            $paymentStatus = ($status === 'delivered' || $status === 'completed') ? 'paid' : $paymentStatuses[array_rand($paymentStatuses)];
+            $paymentStatus = ($status === 'delivered') ? 'paid' : $paymentStatuses[array_rand($paymentStatuses)];
             
             $order = new Order();
             $order->fill([
