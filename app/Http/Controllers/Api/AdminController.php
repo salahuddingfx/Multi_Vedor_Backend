@@ -813,8 +813,14 @@ class AdminController extends BaseController
             $now = now();
             
             if ($customStart && $customEnd) {
-                $startDate = \Illuminate\Support\Carbon::parse($customStart)->startOfDay();
-                $endDate = \Illuminate\Support\Carbon::parse($customEnd)->endOfDay();
+                $startDate = \Illuminate\Support\Carbon::parse($customStart);
+                if (strlen(trim($customStart)) <= 10) {
+                    $startDate = $startDate->startOfDay();
+                }
+                $endDate = \Illuminate\Support\Carbon::parse($customEnd);
+                if (strlen(trim($customEnd)) <= 10) {
+                    $endDate = $endDate->endOfDay();
+                }
             } else {
                 $startDate = match($range) {
                     'daily' => $now->copy()->subHours(24),
