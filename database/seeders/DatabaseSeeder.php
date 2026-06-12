@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             'username' => 'admin',
             'email' => 'admin@gmail.com',
             'password' => bcrypt('admin123'),
-            'role' => 'admin'
+            'role' => 'admin',
+            'image_path' => 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200'
         ]);
 
         User::create([
@@ -28,7 +29,8 @@ class DatabaseSeeder extends Seeder
             'username' => 'support',
             'email' => 'support@gmail.com',
             'password' => bcrypt('support123'),
-            'role' => 'admin'
+            'role' => 'admin',
+            'image_path' => 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=200'
         ]);
 
         // 2. Create Sites
@@ -80,6 +82,14 @@ class DatabaseSeeder extends Seeder
             'title' => 'Taste the Tradition',
             'subtitle' => 'Authentic handmade pickles.',
             'image_path' => 'https://images.unsplash.com/photo-1589135233689-d58620025983?q=80&w=1200',
+            'order' => 1
+        ]);
+
+        HeroSlide::create([
+            'site_id' => $tajashutki->id,
+            'title' => 'Coastal Seafood Harvest',
+            'subtitle' => '100% naturally sun-dried seafood.',
+            'image_path' => 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=1200',
             'order' => 1
         ]);
     }
