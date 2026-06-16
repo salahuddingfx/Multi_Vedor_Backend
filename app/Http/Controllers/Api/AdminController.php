@@ -146,9 +146,16 @@ class AdminController extends BaseController
     public function getProducts(Request $request) {
         $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
-        $products = Product::where('site_id', $siteId)
-            ->with(['category', 'site', 'images', 'variations'])
-            ->paginate(20);
+        $query = Product::where('site_id', $siteId)
+            ->with(['category', 'site', 'images', 'variations']);
+
+        if ($request->boolean('all', false) || $request->input('per_page') === '-1') {
+            $products = $query->get();
+            $products->each->makeVisible(['cost_items']);
+            return $this->sendResponse($products, 'Admin products retrieved.');
+        }
+
+        $products = $query->paginate($request->input('per_page', 20));
         $products->getCollection()->each->makeVisible(['cost_items']);
         return $this->sendResponse($products, 'Admin products retrieved.');
     }
