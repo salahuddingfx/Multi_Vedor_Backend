@@ -481,10 +481,16 @@ class AdminController extends BaseController
     public function getOrders(Request $request) {
         $request->validate(['site_id' => 'required|exists:sites,id']);
         $siteId = $request->site_id;
-        $orders = Order::where('site_id', $siteId)
+        $query = Order::where('site_id', $siteId)
             ->with(['items.product.images', 'site'])
-            ->latest()
-            ->paginate(50);
+            ->latest();
+
+        if ($request->boolean('all', false) || $request->input('per_page') === '-1') {
+            $orders = $query->get();
+            return $this->sendResponse($orders, 'Admin orders retrieved.');
+        }
+
+        $orders = $query->paginate($request->input('per_page', 50));
         return $this->sendResponse($orders, 'Admin orders retrieved.');
     }
 
