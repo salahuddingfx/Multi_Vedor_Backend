@@ -102,6 +102,8 @@ Route::prefix('admin')->middleware('throttle:admin')->group(function () {
     Route::get('/reviews', [ReviewController::class, 'getAdminReviews']);
     Route::post('/reviews/{id}/update', [ReviewController::class, 'updateAdminReview']);
     Route::post('/reviews/{id}/delete', [ReviewController::class, 'deleteAdminReview']);
+    Route::post('/reviews/bulk-update', [ReviewController::class, 'bulkUpdateReviews']);
+    Route::post('/reviews/bulk-delete', [ReviewController::class, 'bulkDeleteReviews']);
 
     // Admin User & Customer Management
     Route::get('/users', [AdminController::class, 'getUsers']);
