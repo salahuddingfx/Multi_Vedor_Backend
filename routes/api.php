@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\SocialPreviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -126,3 +127,6 @@ Route::prefix('admin')->middleware('throttle:admin')->group(function () {
     Route::post('/notifications/{id}/delete', [NotificationController::class, 'destroy']);
     });
 });
+
+// Social Preview (server-side OG tags for crawlers)
+Route::get('/preview/{site}/product/{slug}', [SocialPreviewController::class, 'product']);
