@@ -125,4 +125,43 @@ class ReviewController extends BaseController
         $review->delete();
         return $this->sendResponse([], 'Review deleted successfully.');
     }
+
+    // For Admin: Bulk update reviews (approve/unapprove)
+    public function bulkUpdateReviews(Request $request)
+    {
+        $request->validate([
+            'ids'       => 'required|array',
+            'ids.*'     => 'integer|exists:reviews,id',
+            'site_id'   => 'required|integer|exists:sites,id',
+            'is_approved' => 'required|boolean',
+        ]);
+
+        $updated = Review::whereIn('id', $request->ids)
+            ->where('site_id', $request->site_id)
+            ->update(['is_approved' => $request->is_approved]);
+
+        return $this->sendResponse([
+            'updated_count' => $updated,
+            'ids' => $request->ids,
+        ], "$updated reviews updated successfully.");
+    }
+
+    // For Admin: Bulk delete reviews
+    public function bulkDeleteReviews(Request $request)
+    {
+        $request->validate([
+            'ids'     => 'required|array',
+            'ids.*'   => 'integer|exists:reviews,id',
+            'site_id' => 'required|integer|exists:sites,id',
+        ]);
+
+        $deleted = Review::whereIn('id', $request->ids)
+            ->where('site_id', $request->site_id)
+            ->delete();
+
+        return $this->sendResponse([
+            'deleted_count' => $deleted,
+            'ids' => $request->ids,
+        ], "$deleted reviews deleted successfully.");
+    }
 }
